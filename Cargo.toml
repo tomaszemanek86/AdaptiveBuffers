@@ -1,0 +1,10 @@
+[package]
+name = "protoserde"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+clap = {version = "4.4.2", features = ["derive"]}
+simple_logger = "4.2.0"
+log = "0.4.20"
+is_variant = "1.0.0"
