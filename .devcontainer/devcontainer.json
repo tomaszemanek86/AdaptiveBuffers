@@ -15,7 +15,8 @@
 				"vadimcn.vscode-lldb",
 				"swellaby.vscode-rust-test-adapter",
 				"hdevalke.rust-test-lens",
-				"raits.rust-development"
+				"raits.rust-development",
+				"mhutchie.git-graph"
 			]
 		}
 	}
