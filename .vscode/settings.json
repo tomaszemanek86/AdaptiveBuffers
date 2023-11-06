@@ -1,5 +1,3 @@
 {
-    "rust-test-lens.enabled": true,
-    "rust-test-lens.args.main": []
-    //"rustTestExplorer.rootCargoManifestFilePath": "/home/ubuntu/AdaptiveBuffers/AdaptiveBuffers/Cargo.toml",   
+    "rust-test-lens.enabled": true
 }
