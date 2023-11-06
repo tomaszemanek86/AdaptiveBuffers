@@ -8,4 +8,4 @@ services:
             dockerfile: dev.Dockerfile
         image: dev
         volumes:
-            - ./..:/home/AB/AdaptiveBuffers
+            - ./..:/home/ubuntu/AdaptiveBuffers

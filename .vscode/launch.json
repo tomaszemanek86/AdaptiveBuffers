@@ -4,24 +4,6 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug executable 'protoserde'",
-            "cargo": {
-                "args": [
-                    "build",
-                    "--bin=protoserde",
-                    "--package=protoserde"
-                ],
-                "filter": {
-                    "name": "protoserde",
-                    "kind": "bin"
-                }
-            },
-            "args": [],
-            "cwd": "${workspaceFolder}"
-        },
-        {
-            "type": "lldb",
-            "request": "launch",
             "name": "Debug unit tests in executable 'protoserde'",
             "cargo": {
                 "args": [
@@ -36,7 +18,7 @@
                 }
             },
             "args": [],
-            "cwd": "${workspaceFolder}"
+            "cwd": "${workspaceFolder}/AdaptiveBuffers"
         }
     ]
 }

@@ -1,0 +1,4 @@
+{
+    "rust-test-lens.enabled": true,
+    "rustTestExplorer.rootCargoManifestFilePath": "${workspaceFolder}/AdaptiveBuffers/Cargo.toml",
+}
