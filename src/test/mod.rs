@@ -1,6 +1,7 @@
 mod cpp_generated_data_test;
 mod cpp_generated_deserializers_test;
 mod cpp_generated_serializers_test;
+mod cpp_integration_test;
 mod memory;
 
 use super::*;
