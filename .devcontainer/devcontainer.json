@@ -1,0 +1,23 @@
+{
+    "name": "Adaptive Buffers Dev",
+	"containerUser": "AB",
+	"remoteUser": "AB",
+	"dockerComposeFile": [
+		"docker-compose.yml"
+	],
+	"service": "dev",
+	"workspaceFolder": "/home/AB/AdaptiveBuffers",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"1YiB.rust-bundle",
+				"rust-lang.rust-analyzer",
+				"vadimcn.vscode-lldb",
+				"swellaby.vscode-rust-test-adapter",
+				"hdevalke.rust-test-lens",
+				"raits.rust-development",
+				"mhutchie.git-graph"
+			]
+		}
+	}
+}
