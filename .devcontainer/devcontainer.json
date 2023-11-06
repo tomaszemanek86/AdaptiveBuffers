@@ -1,7 +1,5 @@
 {
     "name": "Adaptive Buffers Dev",
-	"containerUser": "AB",
-	"remoteUser": "AB",
 	"dockerComposeFile": [
 		"docker-compose.yml"
 	],
