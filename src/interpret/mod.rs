@@ -1,49 +1,161 @@
+mod as_memory;
+mod enumeration;
+mod error;
 mod interpret;
-mod structures;
+mod structure;
+mod type_variant;
+mod types;
+mod view;
 
-use std::cell::Cell;
+use super::*;
+use crate::parser::{self};
+use std::cell::RefCell;
 use std::collections::HashMap;
-use std::vec::Vec;
 use std::rc::Rc;
-use crate::parser;
+use std::vec::Vec;
 
+#[derive(Debug)]
 pub enum InterpretError {
-    StructureRedefined(parser::Struct),
-    StructureContainsItself(parser::Struct),
-    UnknownType(String),
-    NoMembersInStruct,
+    TypeContainsItself(DataView<parser::Struct>),
+    UnknownType(DataView<String>),
+    CyclicalReference(Vec<String>),
+    StructMemberNotUnique,
+    UnknownStructMemberReference(CodeView),
+    MemberReferenceDoesntPointToView(CodeView),
+    MemberReferenceDoesntPointToArray(CodeView),
+    StructMemberConstantCanBeApliedOnlyForInt(CodeView),
+    ViewReferenceTypeTooSmall(CodeView),
+    UnknownIntSize(u8),
+    EnumAlreadyExists(DataView<parser::Enum>),
+    EnumConstantNotUnique(CodeView),
+    EnumConstantValueNotUnique(CodeView),
+    EnumConstantValueNotFitting(CodeView),
+    UnknownEnumMember(CodeView),
+    UnknownEnum(CodeView),
+    ViewAlreadyExists(CodeView),
+    ViewItemNotUniqueWithinView(CodeView),
+    ViewReferenceKeyIsTooBig(CodeView),
+    ViewEmpty(String),
+    VievConstantsMustBeAllEnumsOrAllIntsOrAllUndefined
 }
 
-#[derive(is_variant::IsVariant)]
-pub enum Type {
-    Struct(Rc<Struct>),
-    Int(parser::Int),
-    UserDefined(String)
+#[derive(variation::Variation, Clone)]
+pub enum TypeVariant {
+    Struct(Rc<RefCell<DataView<Struct>>>),
+    Enum(Rc<DataView<Enum>>),
+    View(Rc<RefCell<DataView<View>>>),
+    Int(DataView<Int>),
+    Unknown(DataView<String>),
 }
 
-pub struct Member {
+#[derive(Clone)]
+pub struct Type {
+    typ: TypeVariant,
+    max_array_size: Option<u16>,
+}
+
+#[derive(Clone)]
+pub struct ViewPosibility {
+    typ: Type,
+    constant: Option<parser::ViewConstantValue>
+}
+
+#[derive(Default, Clone)]
+pub struct View {
     name: String,
-    typ: Cell<Type>,
+    types: Vec<ViewPosibility>
 }
 
+#[derive(Clone, variation::Variation)]
+pub enum StructMemberConstant {
+    ViewReferenceKey(parser::MemberReference),
+    ArrayDimension(parser::MemberReference),
+}
+
+#[derive(Clone)]
+pub struct StructMember {
+    name: DataView<String>,
+    index: usize,
+    typ: Type,
+    constant: Option<StructMemberConstant>,
+}
+
+#[derive(Default, Clone)]
 pub struct Struct {
-    members: Vec<Member>
+    name: DataView<String>,
+    members: Vec<StructMember>,
 }
 
-#[derive(Default)]
-pub struct Structs {
-    structs: HashMap<String, Rc<Struct>>
+#[derive(Clone, Default)]
+pub struct EnumConstant {
+    name: String,
+    value: usize,
+}
+
+#[derive(Default, Clone)]
+pub struct Enum {
+    name: String,
+    underlaying_int: Int,
+    constants: Vec<DataView<EnumConstant>>,
+}
+
+#[derive(Default, Clone)]
+pub struct Types {
+    types: HashMap<String, TypeVariant>,
+    order: Vec<String>,
+}
+
+impl Types {
+    fn get_type(&self, name: &str) -> Result<Option<TypeVariant>, InterpretError> {
+        match self.types.get(name) {
+            Some(t) => {
+                if t.is_unknown() {
+                    Err(InterpretError::UnknownType(t.as_unknown().unwrap().clone()))
+                } else {
+                    Ok(Some(t.clone()))
+                }
+            }
+            None => Ok(None),
+        }
+    }
+
+    fn get_enum_member_value(
+        &self,
+        enum_name: &str,
+        enum_member: &str,
+    ) -> Result<usize, InterpretError> {
+        if let Some(enum_type) = self.get_type(enum_name)? {
+            if let TypeVariant::Enum(e) = enum_type {
+                for constant in &e.constants {
+                    if constant.name == enum_member {
+                        return Ok(constant.value);
+                    }
+                }
+                return Err(InterpretError::UnknownEnumMember(
+                    e.code_view.clone()
+                ));
+            }
+        }
+        panic!("enum not found")
+    }
 }
 
 #[derive(Default)]
 struct Interpreter {
-    structs: Structs
+    types: Types,
+    order: Vec<String>,
+    big_endian: Option<bool>,
+    required_version: Option<[u8; 3]>,
 }
 
-pub fn interpret(tokens: Vec<parser::SyntaxToken>) -> Result<Vec<Type>, InterpretError> {
+pub trait AsMemory {
+    fn as_memory(&self, others: &Vec<MemoryDeclaration>) -> Result<Memory, InterpretError>;
+}
+
+pub fn interpret(
+    tokens: Vec<parser::SyntaxToken>,
+) -> Result<Vec<MemoryDeclaration>, InterpretError> {
     let mut interpreter = Interpreter::default();
-    for token in tokens {
-        let _ = interpreter.put_token(token)?;
-    }
-    interpreter.get_types()
+    interpreter = interpreter.interpret(tokens)?;
+    interpreter.get_memory()
 }

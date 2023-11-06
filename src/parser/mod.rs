@@ -1,157 +1,196 @@
-use std::marker::PhantomData;
-
-mod parse;
-mod is_a;
+mod error;
 mod factory;
+mod is_a;
+mod parse;
+mod parser_data;
+mod view_type_posibility;
+mod default;
+
+use std::fmt::Debug;
+use std::str::FromStr;
+
+use super::*;
 
 #[derive(Debug)]
 pub enum ParseError {
-    NotEnoughChars,
-    NotU8,
-    NotInt,
-    NotWord,
-    OrFailed,
-    NotToken,
-    NotStr,
-    NotAType,
-    UnknownType,
-    UnknownSyntaxToken
+    NotEnoughChars(CodeView),
+    ParseValueFailed(CodeView),
+    NotInt(CodeView),
+    NotWord(CodeView),
+    OrFailed(CodeView, String),
+    NotToken(String, CodeView),
+    NotStr(CodeView),
+    NotAType(CodeView),
+    RetrieveDataFailed(CodeView),
+    UnknownSyntaxToken(CodeView),
 }
 
-pub struct ParseResult<'a> {
-    pub parsed: &'a str,
-    pub rest: &'a str,
+pub trait Parser {
+    fn parse<'a>(&mut self, text: &CodeView) -> Result<CodeView, Option<ParseError>>;
 }
 
-pub trait Parser<'a, 'b: 'a> {
-    fn parse(&'a mut self, text: &'b str) -> Result<ParseResult<'a>, ParseError>;
+pub trait ParserData<TData> {
+    fn data(&self) -> Option<TData>;
 }
 
-struct Or<'a, 'b: 'a> {
-    parsers: &'a mut [&'a mut dyn Parser<'a, 'b>],
-    index: usize
+struct Or<'a> {
+    parsers: &'a mut [&'a mut dyn Parser],
+    index: usize,
+    error_message: &'a str,
 }
 
-#[derive(Default)]
-pub struct U8 {
-    pub u8: Option<u8>
+#[derive(Default, Debug, Clone)]
+pub struct Value<TData: FromStr + Debug + Clone> {
+    pub value: Option<TData>
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 struct WhiteChars {
-    min_count: usize
+    min_count: usize,
 }
 
 #[derive(Default)]
 struct Token<'a> {
     token: &'a str,
-    found: bool
+    found: bool,
+    produce_error: bool,
 }
 
-struct Sequence<'a, 'b: 'a> {
-    parsers: &'a mut [&'a mut dyn Parser<'a, 'b> ]
+#[derive(Default)]
+struct Sequence<'a> {
+    parsers: &'a mut [&'a mut dyn Parser],
 }
 
-struct Repeat<'a, TData> {
-    parse_fn: &'a dyn Fn(&str) -> Result<(ParseResult<'a>, TData), ParseError>,
-    parsed: Vec<TData>
+struct Repeat<TData, TParser: Parser + ParserData<TData>> {
+    parser: TParser,
+    parsed: Vec<TData>,
 }
 
 struct Str {
     beg_end: char,
     esc: char,
-    string: Option<String>
+    string: Option<String>,
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct Endian {
-    pub big: bool
+    pub big: bool,
 }
 
-#[derive(Default, Debug, PartialEq, Clone)]
-pub struct Int {
-    pub signed: bool,
-    pub bytes: u8
+#[derive(Debug, Clone, variation::Variation)]
+pub enum TypVariant {
+    Int(DataView<Int>),
+    Unknown(DataView<String>),
+    UnknownType,
 }
 
-#[derive(Debug, PartialEq, is_variant::IsVariant)]
-pub enum Typ {
-    Int(Int),
-    View(Vec<String>),
-    UserDefined(String),
-    UnknownType
+#[derive(Debug, Default, Clone)]
+pub struct Typ {
+    pub typ: TypVariant,
+    pub max_array_size: Option<u16>,
 }
 
-pub struct MemberInit {
-    name: String,
-    value: Value
+#[derive(Debug, Clone, Default)]
+pub struct MemberReference {
+    pub member_name: DataView<String>,
+    property: String,
 }
 
-pub enum Value {
-    U8(u8),
-    String(String),
-    StructInit(Vec<MemberInit>)
+#[derive(variation::Variation, Debug, Clone)]
+pub enum StructMemberConstant {
+    No,
+    ViewMemberKey(MemberReference),
+    ArrayDimension(MemberReference)
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct StructMember {
-    pub name: String,
+    pub name: DataView<String>,
     pub typ: Typ,
+    pub constant: StructMemberConstant,
 }
 
-#[derive(Default)]
+#[derive(Default, Clone, Debug)]
 pub struct Struct {
+    pub name: DataView<String>,
+    pub members: Vec<StructMember>,
+}
+
+struct Separated<'a, TData, TParser: Parser + ParserData<TData>> {
+    parser: TParser,
+    separator: &'a mut dyn Parser,
+    data: Vec<TData>,
+}
+
+#[derive(Debug, Default, Clone)]
+pub struct EnumMemberRef {
+    pub enum_name: DataView<String>,
+    pub enum_member: DataView<String>,
+}
+
+#[derive(Debug, Clone, variation::Variation)]
+pub enum ViewConstantValue {
+    Usize(DataView<usize>),
+    EnumMemberRef(EnumMemberRef),
+}
+
+#[derive(Debug, Clone)]
+pub struct ViewTypePosibility {
+    pub typ: Typ,
+    pub constant: Option<ViewConstantValue>,
+}
+
+#[derive(Debug, Default, Clone)]
+pub struct View {
     pub name: String,
-    pub members: Vec<StructMember>
+    pub types: Vec<DataView<ViewTypePosibility>>,
 }
 
-struct Separated<'a, TData> {
-    parse_fn: &'a dyn Fn(&str) -> Result<(ParseResult, TData), ParseError>,
-    separator: &'a str,
-    data: Vec<TData>
+#[derive(Debug, Default, Clone)]
+pub struct EnumConstant {
+    pub name: String,
+    pub typ: Value<usize>,
 }
 
-#[derive(Debug, Default)]
-pub struct VariantItem {
-    ident: String,
-    typ: Typ
+#[derive(Default, Clone, Debug)]
+pub struct Enum {
+    pub name: String,
+    pub underlaying_int: Int,
+    pub constants: Vec<DataView<EnumConstant>>,
 }
 
-#[derive(Debug, Default)]
-pub struct Variant {
-    name: String,
-    typ: Typ,
-    variants: Vec<VariantItem>
-}
-
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct RequiredVersion {
-    pub version: [U8; 3]
-}
-
-#[derive(Default)]
-struct ParsedData<'a, 'b: 'a, TData: Parser<'a, 'b> + Default> {
-    data: TData,
-    result: Option<ParseResult<'a>>,
-    phantom: PhantomData<&'b TData>,
+    pub version: [Value<u8>; 3],
 }
 
 pub enum SyntaxToken {
-    RequiredVersion(RequiredVersion),
-    Endian(Endian),
-    Struct(Struct),
-    Variant(Variant),
+    RequiredVersion(DataView<RequiredVersion>),
+    Endian(DataView<Endian>),
+    Struct(DataView<Struct>),
+    View(DataView<View>),
+    Enum(DataView<Enum>),
 }
 
-pub fn parse(text: &str) -> Result<Vec<SyntaxToken>, ParseError> {
+pub fn parse(text: String) -> Result<Vec<SyntaxToken>, ParseError> {
     let mut tokens = Vec::default();
-    let mut res = ParseResult { parsed: &text[..0], rest: &text[..] };
+    let mut res = CodeView::from(text);
     loop {
         let mut token = Option::<SyntaxToken>::default();
-        res = token.parse(res.rest)?;
-        tokens.push(token.unwrap());
-        if res.rest.len() == 0 {
-            return Ok(tokens);
+        match token.parse(&res) {
+            Ok(view) => {
+                if let Some(t) = token {
+                    tokens.push(t);
+                }
+                res = view;
+                if res.rest().len() == 0 {
+                    return Ok(tokens);
+                }
+            }
+            Err(err) => match err {
+                Some(err) => return Err(err),
+                None => panic!("unexpected error"),
+            },
         }
     }
 }

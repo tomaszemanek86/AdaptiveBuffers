@@ -1,37 +1,70 @@
 use super::*;
 
-impl<'a, 'b: 'a> Or<'a, 'b> {
-    pub fn new(parsers: &'b mut [&'b mut dyn Parser]) -> Self {
-        Self { parsers: parsers, index: 0 }
+impl<'a> Or<'a> {
+    pub fn new<'b: 'a>(parsers: &'b mut [&'b mut dyn Parser], error_message: &'a str) -> Self
+    where
+        'a: 'b,
+    {
+        Self {
+            parsers,
+            index: 0,
+            error_message,
+        }
     }
 }
 
-impl<'a, 'b: 'a> Token<'a> {
-    pub fn new(token: &'b str) -> Self {
-        Self { token: token, found: false }
+impl<'a> Token<'a> {
+    pub fn new<'b: 'a>(token: &'b str, produce_error: bool) -> Self
+    where
+        'a: 'b,
+    {
+        Self {
+            token: token,
+            found: false,
+            produce_error: produce_error,
+        }
     }
 }
 
-impl<'a, 'b: 'a> Sequence<'a, 'b> {
-    pub fn new(parsers: &'b mut [&'b mut dyn Parser]) -> Self {
-        Self { parsers: parsers }
+impl<'a> Sequence<'a> {
+    pub fn new<'b: 'a>(parsers: &'b mut [&'b mut dyn Parser]) -> Self
+    where
+        'a: 'b,
+    {
+        Self { parsers }
     }
 }
 
-impl<'a, 'b: 'a, TData> Repeat<'a, TData> {
-    pub fn new(parse_fn: &'b dyn Fn(&str) -> Result<(ParseResult, TData), ParseError>) -> Self {
-        Self { parse_fn: parse_fn, parsed: Default::default() }
+impl<'a, TData, TParser: Parser + ParserData<TData>> Repeat<TData, TParser> {
+    pub fn new(parser: TParser) -> Self {
+        Self {
+            parser,
+            parsed: Default::default(),
+        }
     }
 }
 
-impl<'a, 'b: 'a, TData> Separated<'a, TData> {
-    pub fn new(parse_fn: &'b dyn Fn(&str) -> Result<(ParseResult, TData), ParseError>, separator: &'b str) -> Self {
-        Self { parse_fn: parse_fn, separator: separator, data: Default::default() }
+impl<'a, TData, TParser: Parser + ParserData<TData>> Separated<'a, TData, TParser> {
+    pub fn new(parser: TParser, separator: &'a mut dyn Parser) -> Self {
+        Self {
+            parser,
+            separator,
+            data: Default::default(),
+        }
     }
 }
 
 impl WhiteChars {
     pub fn new(min_count: usize) -> Self {
-        Self { min_count: min_count }
+        Self { min_count }
+    }
+}
+
+impl MemberReference {
+    pub fn new(property: &str) -> Self {
+        Self {
+            member_name: Default::default(),
+            property: property.into()
+        }
     }
 }
