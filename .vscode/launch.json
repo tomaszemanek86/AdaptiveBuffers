@@ -1,0 +1,42 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'protoserde'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=protoserde",
+                    "--package=protoserde"
+                ],
+                "filter": {
+                    "name": "protoserde",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'protoserde'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=protoserde",
+                    "--package=protoserde"
+                ],
+                "filter": {
+                    "name": "protoserde",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}
