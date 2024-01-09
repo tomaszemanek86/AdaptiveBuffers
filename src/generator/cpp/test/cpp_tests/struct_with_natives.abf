@@ -1,0 +1,7 @@
+endian big
+
+struct Date {
+    year: u16,
+    day: u8,
+    month: u8
+}

@@ -1,0 +1,7 @@
+endian big
+
+enum Car : u8 {
+    Skoda = 5,
+    Audi = 10,
+    WV = 15
+}

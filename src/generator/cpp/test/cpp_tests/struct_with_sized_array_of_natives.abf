@@ -1,0 +1,6 @@
+endian big
+
+struct Dimension {
+    whl_dim: u8 = whl.dimension,
+    whl: [u16]
+}

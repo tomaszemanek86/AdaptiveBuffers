@@ -1,0 +1,10 @@
+endian big
+
+view ANumber {
+    u8, u16, u32
+}
+
+struct KnownNumber {
+    number_key: u8 = number.key,
+    number: ANumber
+}

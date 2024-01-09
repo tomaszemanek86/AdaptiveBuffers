@@ -1,0 +1,12 @@
+
+endian big
+
+view Numbers {
+    u8, u16, u32
+}
+
+struct NumberSeq {
+    num0 : Numbers,
+    num1 : Numbers,
+    num2 : Numbers
+}

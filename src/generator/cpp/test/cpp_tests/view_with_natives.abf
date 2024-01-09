@@ -1,0 +1,5 @@
+endian little
+
+view Numbers {
+    u8, u16, u32
+}
