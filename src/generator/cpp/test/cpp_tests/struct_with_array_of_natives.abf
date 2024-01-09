@@ -1,0 +1,5 @@
+endian big
+
+struct Dimension {
+    whl: [u16, 3]
+}
