@@ -53,6 +53,10 @@ impl ToString for InterpretError {
             InterpretError::ViewEmpty(t) => format!("View '{}' is empty", t),
             InterpretError::VievConstantsMustBeAllEnumsOrAllIntsOrAllUndefined => {
                 format!("View constants must be all enums or all ints or all undefined")
+            },
+            InterpretError::EndianNotSet => "Endian not set".into(),
+            InterpretError::EndianOverrided(origin, overrided) => {
+                format!("Endian cannot be override, originally defined here {} overided here {}", origin.pos(), overrided.pos())
             }
         }
     }

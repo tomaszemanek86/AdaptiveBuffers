@@ -87,7 +87,7 @@ pub enum TypVariant {
 #[derive(Debug, Default, Clone)]
 pub struct Typ {
     pub typ: TypVariant,
-    pub max_array_size: Option<u16>,
+    pub array_size: ArraySize,
 }
 
 #[derive(Debug, Clone, Default)]
@@ -120,6 +120,11 @@ struct Separated<'a, TData, TParser: Parser + ParserData<TData>> {
     parser: TParser,
     separator: &'a mut dyn Parser,
     data: Vec<TData>,
+}
+
+struct Optional<TParser: Parser> {
+    parser: TParser,
+    parsed: bool,
 }
 
 #[derive(Debug, Default, Clone)]

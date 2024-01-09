@@ -7,12 +7,14 @@ mod memory_details;
 mod native_type;
 mod parser;
 mod struct_member_constant_memory;
+mod struct_member_memory;
 mod struct_memory;
 mod view_memory;
 mod enum_member_ref_memory;
 mod view_posibility_constant_memory;
 mod memory_type;
 mod enum_memory;
+mod array_size;
 
 use clap::Parser;
 use std::{fmt::Display, fs, process::exit, rc::Rc, cell::RefCell};
@@ -50,16 +52,14 @@ pub enum StructMemberConstantMemory {
 #[derive(Debug, Clone)]
 pub enum Language {
     Cpp,
-    C,
-    Python,
+    Unknown
 }
 
 impl Display for Language {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::C => write!(f, "C"),
             Self::Cpp => write!(f, "Cpp"),
-            Self::Python => write!(f, "Python"),
+            Self::Unknown => panic!("unknown language")
         }
     }
 }
@@ -68,7 +68,8 @@ impl Display for Language {
 pub struct StructMemberMemory {
     pub name: String,
     pub index: usize,
-    pub memory: RefCell<Memory>
+    pub memory: RefCell<Memory>,
+    pub structure: Rc<RefCell<StructMemory>>
 }
 
 #[derive(Debug)]
@@ -115,6 +116,20 @@ pub struct EnumMemory {
     constants: Vec<EnumConstantMemory>,
 }
 
+#[derive(Debug, Clone)]
+pub struct ArrayDimensionReference {
+    origin: Rc<NativeType>,
+    size: Rc<StructMemberMemory>,
+    array: Rc<StructMemberMemory>
+}
+
+#[derive(Debug, Clone)]
+pub struct ViewKeyReference {
+    native_key: Rc<NativeType>,
+    key: Rc<StructMemberMemory>,
+    view: Rc<StructMemberMemory>
+}
+
 #[derive(Debug, Clone, variation::Variation)]
 pub enum NativeType {
     Bool,
@@ -127,8 +142,8 @@ pub enum NativeType {
     I32,
     I64,
     Unknown,
-    ViewKeyReference(Rc<StructMemberMemory>),
-    ArrayDimensionReference(Rc<StructMemberMemory>),
+    ViewKeyReference(ViewKeyReference),
+    ArrayDimensionReference(ArrayDimensionReference),
 }
 
 trait ExactSize {
@@ -157,26 +172,39 @@ pub trait MemoryDetails {
     fn max_size(&self) -> Option<usize>;
     fn buffer_size(&self) -> Option<usize>;
     fn submembers(&self) -> usize;
+    fn context_size(&self) -> usize;
     fn is_sized(&self) -> bool {
         self.exact_size().is_some()
     }
 }
 
+#[derive(Clone, variation::Variation, PartialEq, Debug)]
+pub enum ArraySize {
+    No,
+    Dyn,
+    Exact(u32)
+}
+
 #[derive(Debug)]
 pub struct Memory {
     memory: MemoryType,
-    max_array_size: Option<u16>
+    array_size: ArraySize
 }
 
 #[derive(Debug, variation::Variation)]
 pub enum MemoryType {
     Native(NativeType),
-    Struct(StructMemory),
+    Struct(Rc<RefCell<StructMemory>>),
     View(ViewMemory),
     Enum(Rc<EnumMemory>)
 }
 
-fn generate_memory(content: String) -> Vec<MemoryDeclaration> {
+pub struct MemoryImage {
+    big_endian: bool,
+    memory_decl: Vec<MemoryDeclaration>
+}
+
+fn interpet_memory(content: String) -> MemoryImage {
     let tokens = parser::parse(content)
         .or_else(|e| -> Result<Vec<parser::SyntaxToken>, String> {
             log::error!("parse error: {}", e.to_string());
@@ -184,15 +212,15 @@ fn generate_memory(content: String) -> Vec<MemoryDeclaration> {
         })
         .unwrap();
     interpret::interpret(tokens)
-        .or_else(|e| -> Result<Vec<MemoryDeclaration>, String> {
+        .or_else(|e| -> Result<MemoryImage, String> {
             log::error!("interpreting failed: {}", e.to_string());
             exit(1);
         })
         .unwrap()
 }
 
-fn generate_cpp(memory: Vec<MemoryDeclaration>, args: &Args) {
-    if let Err(e) = generator::generate(&memory, args) {
+fn generate_cpp(memory_image: MemoryImage, args: &Args) {
+    if let Err(e) = generator::generate(memory_image, args) {
         log::error!("generator error: {}", e.to_string());
         exit(1)
     }
@@ -201,9 +229,7 @@ fn generate_cpp(memory: Vec<MemoryDeclaration>, args: &Args) {
 impl From<String> for Language {
     fn from(value: String) -> Self {
         match value.as_str() {
-            "c" => Language::C,
             "cpp" => Language::Cpp,
-            "python" => Language::Python,
             _ => {
                 log::error!("Unknown language '{value}'");
                 exit(1);
@@ -219,13 +245,21 @@ pub struct Args {
     #[arg(short, long)]
     protofile: String,
 
-    // Target language (cpp,c,python).
+    // Target language (only cpp supported for now).
     #[arg(short, long)]
     language: Language,
+
+    // target machine endianess (big or little)
+    #[arg(short, long)]
+    endian: String,
 
     // Output directory where library will be generated.
     #[arg(short, long)]
     output_dir: String,
+}
+
+fn cpp_ptr_size() -> usize {
+    std::mem::size_of::<usize>()
 }
 
 fn main() {
@@ -244,13 +278,10 @@ fn main() {
             exit(1);
         })
         .unwrap();
-    let memory = generate_memory(content);
+    let memory_image = interpet_memory(content);
     match language {
-        Language::Cpp => generate_cpp(memory, &args),
-        Language::C => todo!(),
-        Language::Python => todo!(),
+        Language::Cpp => generate_cpp(memory_image, &args),
+        _ => panic!("unexpected langage")
     }
 }
 
-#[cfg(test)]
-mod test;

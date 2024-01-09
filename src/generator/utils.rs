@@ -4,6 +4,7 @@ pub fn to_snake_case(s: &str) -> String {
     for (i, c) in s.chars().enumerate() {
         if i == 0 {
             new_s.push(c.to_ascii_lowercase());
+            last_was_uppercase = c.is_ascii_uppercase();
         } else {
             if c.is_ascii_uppercase() {
                 if last_was_uppercase {

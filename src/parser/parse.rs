@@ -1,4 +1,3 @@
-use std::default;
 use std::ops::DerefMut;
 use std::str::FromStr;
 
@@ -11,8 +10,56 @@ fn take<'a>(text: &CodeView, chars: usize) -> Result<CodeView, Option<ParseError
     Err(Some(ParseError::NotEnoughChars(text.offset(0))))
 }
 
-impl<TData: FromStr + Debug + Clone> Parser for Value<TData> {
+impl<TData: FromStr + TryFrom<usize> + Debug + Clone> Parser for Value<TData> {
     fn parse<'a>(&mut self, text: &CodeView) -> Result<CodeView, Option<ParseError>> {
+        if let Some(c) = text.rest().chars().nth(0) {
+            if c == 'h' {
+                let count = text
+                    .rest()
+                    .chars()
+                    .skip(1)
+                    .into_iter()
+                    .take_while(|c| is_a::is_digit(*c) || ('A'..'F').contains(c))
+                    .count();
+                if let Ok(hex) = usize::from_str_radix(&text.rest()[1..(count + 1)], 16) {
+                    if let Ok(value) = TData::try_from(hex) {
+                        self.value = Some(value);
+                        return Ok(text.offset(count + 1));
+                    }
+                }
+            }
+            if c == 'b' {
+                let count = text
+                    .rest()
+                    .chars()
+                    .skip(1)
+                    .into_iter()
+                    .take_while(|c| is_a::is_digit(*c) || ('A'..'F').contains(c))
+                    .count();
+                if let Ok(hex) = usize::from_str_radix(&text.rest()[1..(count + 1)], 2) {
+                    if let Ok(value) = TData::try_from(hex) {
+                        self.value = Some(value);
+                        return Ok(text.offset(count + 1));
+                    }
+                }
+            }
+            if c == 'B' {
+                let count = text
+                    .rest()
+                    .chars()
+                    .skip(1)
+                    .into_iter()
+                    .take_while(|c| is_a::is_digit(*c))
+                    .count();
+                if let Ok(bitset) = usize::from_str(&text.rest()[1..(count + 1)]) {
+                    let abs_hex = 1usize << bitset;
+                    if let Ok(value) = TData::try_from(abs_hex) {
+                        self.value = Some(value);
+                        return Ok(text.offset(count + 1));
+                    }
+                }
+            }
+        };
         let count = text
             .rest()
             .chars()
@@ -59,6 +106,16 @@ impl Parser for WhiteChars {
             return Ok(text.offset(count));
         }
         Err(Some(ParseError::NotAType(text.offset(0))))
+    }
+}
+
+impl<TParser: Parser> Parser for Optional<TParser> {
+    fn parse<'a>(&mut self, text: &CodeView) -> Result<CodeView, Option<ParseError>> {
+        if let Ok(res) = self.parser.parse(text) {
+            self.parsed = true;
+            return Ok(res);
+        }
+        Ok(text.clone())
     }
 }
 
@@ -332,27 +389,33 @@ impl Parser for TypVariant {
 
 impl Parser for Typ {
     fn parse<'b>(&mut self, text: &CodeView) -> Result<CodeView, Option<ParseError>> {
-        self.max_array_size = None;
-        //let mut size = FilteredValue::new(&|c: char| c >= '0' && c <= '9');
-        let mut size = Value::<u16>::default();
+        self.array_size = ArraySize::No;
+        let mut size = Optional::new(Value::<u32>::default());
         let res = Sequence::new(&mut [
-            &mut Token::new("[", false),
+            &mut Token::new("[", true),
             &mut WhiteChars::default(),
             &mut self.typ,
             &mut WhiteChars::default(),
             &mut Or::new(&mut [
-                &mut Token::new(";", false),
-                &mut Token::new(",", false)
-            ], "epected ';' or ','"),
-            &mut WhiteChars::default(),
-            &mut size,
-            &mut WhiteChars::default(),
-            &mut Token::new("max", false),
-            &mut WhiteChars::default(),
-            &mut Token::new("]", false),
+                &mut Sequence::new(&mut [
+                    &mut Or::new(&mut [
+                        &mut Token::new(";", false),
+                        &mut Token::new(",", false)
+                    ], "epected ';' or ','"),
+                    &mut WhiteChars::default(),
+                    &mut size,
+                    &mut WhiteChars::default()
+                ]),
+                &mut WhiteChars::default()
+            ], "epected 'size' or 'nothing'"),
+            &mut Token::new("]", true),
         ]).parse(text);
         if res.is_ok() {
-            self.max_array_size = Some(size.value.unwrap());
+            if size.parsed {
+                self.array_size = ArraySize::Exact(size.parser.value.unwrap());
+            } else {
+                self.array_size = ArraySize::Dyn;
+            }
             return res
         }
         self.typ.parse(text)
@@ -553,7 +616,7 @@ impl Parser for Option<SyntaxToken> {
         match parser.parse(text) {
             Ok(res) => {
                 *self = None;
-                return Ok(res);
+            return Ok(res);
             }
             Err(e) => {
                 if e.is_some() {
@@ -616,15 +679,26 @@ mod test {
     }
 
     #[test]
-    fn typ_array() {
+    fn dyn_array() {
         let mut typ_parser = Typ::default();
-        let code = CodeView::from("[i16, 5max]");
+        let code = CodeView::from("[i16]");
         let res_code = typ_parser.parse(&code);
         assert!(res_code.is_ok());
-        assert_eq!(typ_parser.max_array_size, Some(5));
+        assert_eq!(typ_parser.array_size.is_dyn(), true);
         assert!(typ_parser.typ.is_int());
         assert_eq!(typ_parser.typ.as_int().unwrap().signed, true);
         assert_eq!(typ_parser.typ.as_int().unwrap().bytes, 16);
+    }
+
+    #[test]
+    fn exact_array() {
+        let mut parser = Typ::default();
+        let res = parser.parse(&CodeView::from(
+            "[u16, 3]",
+        ));
+        assert_eq!(res.is_ok(), true);
+        assert_eq!(parser.array_size.is_exact(), true);
+        assert_eq!(*parser.array_size.as_exact().unwrap(), 3);
     }
 
     #[test]
@@ -632,11 +706,34 @@ mod test {
         let mut u8_parser = Value::<u8>::default();
         let text = CodeView::from("10000");
         let res = u8_parser.parse(&text);
+        assert_eq!(res.is_err(), true);
+    }
+
+    #[test]
+    fn u8_from_hex() {
+        let mut u8_parser = Value::<u8>::default();
+        let text = CodeView::from("hC");
+        let res = u8_parser.parse(&text);
         assert_eq!(res.is_ok(), true);
-        assert_eq!(res.as_ref().unwrap().view(), "100");
-        assert_eq!(res.as_ref().unwrap().rest(), "00");
-        assert_eq!(u8_parser.value.is_some(), true);
-        assert_eq!(u8_parser.value.unwrap(), 100);
+        assert_eq!(u8_parser.value.unwrap(), 12);
+    }
+
+    #[test]
+    fn u8_from_bin() {
+        let mut u8_parser = Value::<u8>::default();
+        let text = CodeView::from("b1001001");
+        let res = u8_parser.parse(&text);
+        assert_eq!(res.is_ok(), true);
+        assert_eq!(u8_parser.value.unwrap(), 73);
+    }
+
+    #[test]
+    fn u8_from_bitset() {
+        let mut u8_parser = Value::<u8>::default();
+        let text = CodeView::from("B3");
+        let res = u8_parser.parse(&text);
+        assert_eq!(res.is_ok(), true);
+        assert_eq!(u8_parser.value.unwrap(), 8);
     }
 
     #[test]

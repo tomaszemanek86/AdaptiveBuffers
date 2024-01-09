@@ -66,7 +66,7 @@ impl Struct {
                     },
                     StructMemberConstant::ArrayDimension(mr) => {
                         if let Some(i) = self.get_member_index_by_name(&mr.member_name.data) {
-                            if !self.members[i].typ.max_array_size.is_some() {
+                            if self.members[i].typ.array_size.is_no() {
                                 return Err(InterpretError::MemberReferenceDoesntPointToArray(mr.member_name.code_view.clone()))
                             }
                         } else {
@@ -89,7 +89,7 @@ impl Struct {
                         None => return Err(InterpretError::UnknownType(u.clone())),
                         Some(t) => member.typ = Type {
                             typ: t,
-                            max_array_size: member.typ.max_array_size
+                            array_size: member.typ.array_size.clone()
                         },
                     },
                     Err(e) => return Err(e),

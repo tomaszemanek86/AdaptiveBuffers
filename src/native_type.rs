@@ -27,7 +27,7 @@ impl NativeType {
         }
     }
 
-    pub fn bytes(&self) -> u8 {
+    pub fn size(&self) -> u8 {
         match self {
             Self::Bool => 1,
             Self::I8 => 1,
@@ -39,8 +39,30 @@ impl NativeType {
             Self::U32 => 4,
             Self::U64 => 8,
             Self::Unknown => panic!("cannot get bytes from unknow native type"),
-            Self::ViewKeyReference(mr) => mr.memory.borrow().memory.as_native().unwrap().bytes(),
-            Self::ArrayDimensionReference(mr) => mr.memory.borrow().memory.as_native().unwrap().bytes(),
+            Self::ViewKeyReference(mr) => mr.key.memory.borrow().memory.as_native().unwrap().size(),
+            Self::ArrayDimensionReference(mr) => mr.size.memory.borrow().memory.as_native().unwrap().size(),
+        }
+    }
+
+    pub fn typename(&self, l: Language) -> &str {
+        match l {
+            Language::Cpp => {
+                match self {
+                    NativeType::Bool => "bool",
+                    NativeType::U8 => "uint8_t",
+                    NativeType::U16 => "uint16_t",
+                    NativeType::U32 => "uint32_t",
+                    NativeType::U64 => "uint64_t",
+                    NativeType::I8 => "int8_t",
+                    NativeType::I16 => "int16_t",
+                    NativeType::I32 => "int32_t",
+                    NativeType::I64 => "int64_t",
+                    NativeType::Unknown => panic!("unknown type"),
+                    NativeType::ViewKeyReference(_) => todo!(),
+                    NativeType::ArrayDimensionReference(_) => todo!(),
+                }
+            },
+            _ => panic!("unexpected language")
         }
     }
 }

@@ -12,6 +12,7 @@ impl StructMemory {
             .unwrap()
             .as_view_key_reference()
             .unwrap()
+            .view
             .index
     }
 
@@ -26,7 +27,7 @@ impl StructMemory {
 
     pub fn get_view_key_reference_member_index(&self, member_index: usize) -> Option<usize> {
         if !self.is_view(member_index) {
-            panic!("not a view")
+            return None
         }
         for (i, _f) in  self.fields.iter().enumerate() {
             if  self.is_view_reference(i) && 
@@ -43,5 +44,25 @@ impl StructMemory {
             return true
         }
         false
+    }
+
+    pub fn get_groups(&self) -> std::vec::Vec<(usize, usize)> {
+        let mut out = std::vec::Vec::default();
+        let mut i0 = 0;
+        for i in 0..self.fields.len() {
+            if self.fields[i].memory.exact_size().is_none() {
+                out.push((i0, i));
+                i0 = i + 1;
+            }
+        }
+        // for case all items are sized
+        if out.len() == 0 {
+            out.push((0, self.fields.len() - 1))
+        }
+        let last_index = self.fields.len() - 1;
+        if out.last().unwrap().1 != last_index {
+            out.push((i0, last_index))
+        }
+        out
     }
 }
