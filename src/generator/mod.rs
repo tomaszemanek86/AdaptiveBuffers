@@ -8,15 +8,14 @@ pub enum GeneratorError {
     InternalError(String),
 }
 
-pub struct Writer {
-    begin_spaces: usize,
-    buffer: String,
-    filename: String,
-}
-
-pub fn generate(memory: &Vec<MemoryDeclaration>, args: &Args) -> Result<(), GeneratorError> {
+pub fn generate(mi: MemoryImage, args: &Args) -> Result<(), GeneratorError> {
+    let big_endian_on_machine = match args.endian.as_str() {
+        "big" => true,
+        "little" => false,
+        _ => panic!("endian can be big or little")
+    };
     match args.language {
-        Language::Cpp => cpp::generate(memory, args),
+        Language::Cpp => cpp::generate(&mi.memory_decl, mi.big_endian == big_endian_on_machine, args),
         _ => {
             return Err(GeneratorError::InternalError(format!(
                 "Language {} not supported",
@@ -26,3 +25,4 @@ pub fn generate(memory: &Vec<MemoryDeclaration>, args: &Args) -> Result<(), Gene
     }
     Ok(())
 }
+

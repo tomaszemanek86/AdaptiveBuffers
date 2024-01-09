@@ -22,7 +22,7 @@ impl View {
             let count_of_type = self
                 .types
                 .iter()
-                .filter(|t| view_posibility.typ.max_array_size == t.typ.max_array_size && match &view_posibility.typ.typ {
+                .filter(|t| view_posibility.typ.array_size == t.typ.array_size && match &view_posibility.typ.typ {
                     TypeVariant::Int(i) => {
                         t.typ.typ.is_int()
                             && t.typ.typ.as_int().unwrap().bytes == i.bytes
@@ -35,7 +35,7 @@ impl View {
                         t.typ.typ.is_view() && t.typ.typ.as_view().unwrap().borrow().name == v.borrow().name
                     }
                     TypeVariant::Enum(e) => t.typ.typ.is_enum() && t.typ.typ.as_enum().unwrap().name == e.name,
-                    TypeVariant::Unknown(u) => panic!("cannot check type for unknown"),
+                    TypeVariant::Unknown(_) => panic!("cannot check type for unknown"),
                 })
                 .count();
             if count_of_type != 1 {

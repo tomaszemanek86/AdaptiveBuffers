@@ -8,49 +8,61 @@ impl<TData: AsMemory + Default + Clone> AsMemory for DataView<TData> {
 
 impl AsMemory for Struct {
     fn as_memory(&self, others: &Vec<MemoryDeclaration>) -> Result<Memory, InterpretError> {
-        let mut structure = StructMemory {
+        let mut structure = Rc::new(RefCell::new(StructMemory {
             name: self.name.data.clone(),
             fields: Vec::new(),
-        };
+        }));
         for member in &self.members {
             if let Some(_) = &member.constant {
-                structure.fields.push(Rc::new(StructMemberMemory {
+                structure.borrow_mut().fields.push(Rc::new(StructMemberMemory {
                     name: member.name.data.clone(),
                     index: member.index,
                     memory: RefCell::new(MemoryType::Native(NativeType::Unknown).non_array_memory()),
+                    structure: structure.clone()
                 }))
             } else {
-                structure.fields.push(Rc::new(StructMemberMemory {
+                structure.borrow_mut().fields.push(Rc::new(StructMemberMemory {
                     name: member.name.data.clone(),
                     index: member.index,
                     memory: RefCell::new(member.typ.as_memory(others)?),
+                    structure: structure.clone()
                 }));
             }
         }
         // resolve view reference keys
-        for (i, f) in structure.fields.iter().enumerate() {
+        for (i, f) in structure.borrow().fields.iter().enumerate() {
             if let Some(c) = &self.members[i].constant {
                 match c {
                     StructMemberConstant::ViewReferenceKey(mr) => {
                         let index = self.get_member_index_by_name(&mr.member_name.data).unwrap();
+                        let native_key = Rc::new(self.members[i].typ.as_memory(others)?.memory.as_native().unwrap().clone());
                         *f.memory.borrow_mut() = MemoryType::Native(NativeType::ViewKeyReference(
-                                structure.fields[index].clone()
+                                ViewKeyReference {
+                                    native_key: native_key,
+                                    key: f.clone(),
+                                    view: structure.borrow().fields[index].clone()
+                                }
                             )).non_array_memory();
         
                     },
                     StructMemberConstant::ArrayDimension(mr) => {
                         let index = self.get_member_index_by_name(&mr.member_name.data).unwrap();
+                        let origin = Rc::new(self.members[i].typ.as_memory(others)?.memory.as_native().unwrap().clone());
                         *f.memory.borrow_mut() = MemoryType::Native(NativeType::ArrayDimensionReference(
-                                structure.fields[index].clone()
+                                ArrayDimensionReference {
+                                    origin: origin,
+                                    size: f.clone(),
+                                    array: structure.borrow().fields[index].clone()
+                                }
                             )).non_array_memory();
                     }
                 } 
             }
         }
-        for f in &structure.fields {
+        for f in &structure.borrow().fields {
             if let Some(nm) = f.memory.borrow().memory.as_native() {
                 if let NativeType::ViewKeyReference(vrk) = nm {
-                    if vrk.memory.borrow().memory.as_view().unwrap().get_index_typename().bytes() > 4 {
+                    if vrk.view.memory.borrow().memory.as_view().unwrap().get_index_typename().size() > 4 {
                         return Err(InterpretError::ViewReferenceKeyIsTooBig(
                             self.members[f.index].constant
                                 .as_ref()
@@ -161,7 +173,7 @@ impl AsMemory for Type {
     fn as_memory(&self, others: &Vec<MemoryDeclaration>) -> Result<Memory, InterpretError> {
         Ok(Memory {
             memory: self.typ.as_memory(others)?.memory,
-            max_array_size: self.max_array_size.clone()
+            array_size: self.array_size.clone()
         })
     }
 }

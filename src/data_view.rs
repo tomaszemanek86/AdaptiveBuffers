@@ -26,4 +26,13 @@ impl<T: Default + Clone> DataView<T> {
     pub fn new(data: T, code_view: CodeView) -> Self {
         Self { data, code_view }
     }
+
+    pub fn convert<To: Default + Clone, FnConvert>(self, convert: FnConvert) -> DataView<To>
+        where FnConvert: FnOnce(T) -> To 
+    {
+        DataView {
+            code_view: self.code_view,
+            data: convert(self.data)
+        }
+    }
 }

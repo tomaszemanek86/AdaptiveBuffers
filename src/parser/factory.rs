@@ -51,6 +51,7 @@ impl<'a, TData, TParser: Parser + ParserData<TData>> Separated<'a, TData, TParse
             separator,
             data: Default::default(),
         }
+
     }
 }
 
@@ -65,6 +66,15 @@ impl MemberReference {
         Self {
             member_name: Default::default(),
             property: property.into()
+        }
+    }
+}
+
+impl<TParser: Parser> Optional<TParser> {
+    pub fn new(parser: TParser) -> Self {
+        Self {
+            parser: parser,
+            parsed: false
         }
     }
 }

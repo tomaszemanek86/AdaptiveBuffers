@@ -4,7 +4,7 @@ impl MemoryType {
     pub fn non_array_memory(self) -> Memory {
         Memory {
             memory: self,
-            max_array_size: None
+            array_size: ArraySize::No
         }
     }
 
@@ -18,14 +18,7 @@ impl MemoryType {
 
     pub fn referenced_view(&self) -> Option<Rc<StructMemberMemory>> {
         match self {
-            MemoryType::Native(NativeType::ViewKeyReference(member)) => Some(member.clone()),
-            _ => None
-        }
-    }
-
-    pub fn referenced_array(&self) -> Option<Rc<StructMemberMemory>> {
-        match self {
-            MemoryType::Native(NativeType::ViewKeyReference(member)) => Some(member.clone()),
+            MemoryType::Native(NativeType::ViewKeyReference(member)) => Some(member.view.clone()),
             _ => None
         }
     }

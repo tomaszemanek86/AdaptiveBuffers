@@ -13,7 +13,17 @@ impl Interpreter {
                     v.data.version[2].value.unwrap(),
                 ])
             }
-            parser::SyntaxToken::Endian(e) => self.big_endian = Some(e.data.big),
+            parser::SyntaxToken::Endian(e) => {
+                if self.big_endian.is_some() {
+                     return Err(
+                        InterpretError::EndianOverrided(
+                            self.big_endian.as_ref().unwrap().code_view.clone(),
+                            e.code_view.clone()
+                        )
+                    )
+                }
+                self.big_endian = Some(e.convert(|b| b.big));
+            },
         }
         Ok(())
     }
@@ -39,5 +49,12 @@ impl Interpreter {
             });
         } 
         Ok(memory)
+    }
+
+    pub fn big_endian(&self) -> Result<bool, InterpretError> {
+        match &self.big_endian {
+            Some(b) => Ok(b.data),
+            None => Err(InterpretError::EndianNotSet)
+        }
     }
 }

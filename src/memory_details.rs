@@ -16,6 +16,10 @@ impl<T: MemoryDetails> MemoryDetails for std::rc::Rc<T> {
     fn submembers(&self) -> usize {
         self.as_ref().submembers()
     }
+
+    fn context_size(&self) -> usize {
+        self.as_ref().context_size()
+    }
 }
 
 impl<T: MemoryDetails> MemoryDetails for RefCell<T> {
@@ -33,6 +37,10 @@ impl<T: MemoryDetails> MemoryDetails for RefCell<T> {
 
     fn submembers(&self) -> usize {
         self.borrow().submembers()
+    }
+
+    fn context_size(&self) -> usize {
+        self.borrow().context_size()
     }
 }
 
@@ -52,6 +60,10 @@ impl MemoryDetails for MemoryDeclaration {
     fn submembers(&self) -> usize {
         self.memory.submembers()
     }
+
+    fn context_size(&self) -> usize {
+        self.memory.context_size()
+    }
 }
 
 impl MemoryDetails for Memory {
@@ -69,6 +81,10 @@ impl MemoryDetails for Memory {
 
     fn submembers(&self) -> usize {
         self.memory.submembers()
+    }
+
+    fn context_size(&self) -> usize {
+        self.memory.context_size()
     }
 }
 
@@ -108,6 +124,15 @@ impl MemoryDetails for MemoryType {
             MemoryType::Enum(t) => t.submembers(),
         }
     }
+
+    fn context_size(&self) -> usize {
+        match self {
+            MemoryType::Native(t) => t.context_size(),
+            MemoryType::Struct(t) => t.context_size(),
+            MemoryType::View(t) => t.context_size(),
+            MemoryType::Enum(t) => t.context_size(),
+        }
+    }
 }
 
 impl MemoryDetails for NativeType {
@@ -123,8 +148,8 @@ impl MemoryDetails for NativeType {
             Self::I32 => Some(4),
             Self::I64 => Some(8),
             Self::Unknown => None,
-            Self::ViewKeyReference(mr) => NativeType::from_max_number(mr.memory.borrow().memory.as_view().unwrap().types.len(), false).exact_size(),
-            Self::ArrayDimensionReference(mr) => mr.exact_size(),
+            Self::ViewKeyReference(mr) => mr.native_key.exact_size(),
+            Self::ArrayDimensionReference(mr) => mr.origin.exact_size(),
         }
     }
 
@@ -138,6 +163,10 @@ impl MemoryDetails for NativeType {
 
     fn submembers(&self) -> usize {
         1
+    }
+
+    fn context_size(&self) -> usize {
+        cpp_ptr_size() * 2 + NativeType::U32.exact_size().unwrap()
     }
 }
 
@@ -177,6 +206,10 @@ impl MemoryDetails for StructMemory {
 
     fn submembers(&self) -> usize {
         self.fields.iter().map(|f| f.submembers()).sum()
+    }
+
+    fn context_size(&self) -> usize {
+        self.fields.iter().map(|t| t.memory.context_size()).sum::<usize>()
     }
 }
 
@@ -225,6 +258,10 @@ impl MemoryDetails for ViewMemory {
     fn submembers(&self) -> usize {
         self.types.iter().map(|t| t.memory.submembers()).max().unwrap()
     }
+
+    fn context_size(&self) -> usize {
+        self.types.iter().map(|t| t.memory.context_size()).max().unwrap()
+    }
 }
 
 impl MemoryDetails for ViewPosibilityMemory {
@@ -242,6 +279,10 @@ impl MemoryDetails for ViewPosibilityMemory {
 
     fn submembers(&self) -> usize {
         self.memory.submembers()
+    }
+
+    fn context_size(&self) -> usize {
+        cpp_ptr_size() * 2 + NativeType::U32.exact_size().unwrap()
     }
 }
 
@@ -261,6 +302,10 @@ impl MemoryDetails for EnumMemory {
     fn submembers(&self) -> usize {
         self.underlaying_type.submembers()
     }
+
+    fn context_size(&self) -> usize {
+        cpp_ptr_size() * 2 + NativeType::U32.exact_size().unwrap()
+    }
 }
 
 impl MemoryDetails for StructMemberMemory {
@@ -278,5 +323,9 @@ impl MemoryDetails for StructMemberMemory {
 
     fn submembers(&self) -> usize {
         self.memory.submembers()
+    }
+
+    fn context_size(&self) -> usize {
+        self.memory.context_size()
     }
 }

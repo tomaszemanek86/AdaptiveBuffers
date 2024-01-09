@@ -36,7 +36,9 @@ pub enum InterpretError {
     ViewItemNotUniqueWithinView(CodeView),
     ViewReferenceKeyIsTooBig(CodeView),
     ViewEmpty(String),
-    VievConstantsMustBeAllEnumsOrAllIntsOrAllUndefined
+    VievConstantsMustBeAllEnumsOrAllIntsOrAllUndefined,
+    EndianNotSet,
+    EndianOverrided(CodeView, CodeView)
 }
 
 #[derive(variation::Variation, Clone)]
@@ -51,7 +53,7 @@ pub enum TypeVariant {
 #[derive(Clone)]
 pub struct Type {
     typ: TypeVariant,
-    max_array_size: Option<u16>,
+    array_size: ArraySize
 }
 
 #[derive(Clone)]
@@ -144,7 +146,7 @@ impl Types {
 struct Interpreter {
     types: Types,
     order: Vec<String>,
-    big_endian: Option<bool>,
+    big_endian: Option<DataView<bool>>,
     required_version: Option<[u8; 3]>,
 }
 
@@ -154,8 +156,11 @@ pub trait AsMemory {
 
 pub fn interpret(
     tokens: Vec<parser::SyntaxToken>,
-) -> Result<Vec<MemoryDeclaration>, InterpretError> {
+) -> Result<MemoryImage, InterpretError> {
     let mut interpreter = Interpreter::default();
     interpreter = interpreter.interpret(tokens)?;
-    interpreter.get_memory()
+    Ok(MemoryImage {
+        big_endian: interpreter.big_endian()?,
+        memory_decl: interpreter.get_memory()?,
+    })
 }
