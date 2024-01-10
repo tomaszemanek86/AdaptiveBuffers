@@ -47,6 +47,7 @@ pub struct Value<TData: FromStr + Debug + Clone> {
 #[derive(Default, Clone)]
 struct WhiteChars {
     min_count: usize,
+    comments: Vec<String>
 }
 
 #[derive(Default)]

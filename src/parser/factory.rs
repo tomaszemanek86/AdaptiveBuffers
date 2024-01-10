@@ -57,7 +57,7 @@ impl<'a, TData, TParser: Parser + ParserData<TData>> Separated<'a, TData, TParse
 
 impl WhiteChars {
     pub fn new(min_count: usize) -> Self {
-        Self { min_count }
+        Self { min_count, comments: Default::default() }
     }
 }
 

@@ -96,16 +96,33 @@ impl<'b> Parser for String {
 
 impl Parser for WhiteChars {
     fn parse<'a>(&mut self, text: &CodeView) -> Result<CodeView, Option<ParseError>> {
-        let count = text
-            .rest()
-            .chars()
-            .into_iter()
-            .take_while(|c| is_a::is_white_space(*c))
-            .count();
-        if count >= self.min_count {
-            return Ok(text.offset(count));
+        let mut count = 0;
+        loop {
+            count += text
+                .rest()[count..]
+                .chars()
+                .into_iter()
+                .take_while(|c| is_a::is_white_space(*c))
+                .count();
+            if text.rest().chars().nth(count) == Some('#') {
+                let new_count = text
+                    .rest()[count..]
+                    .chars()
+                    .into_iter()
+                    .take_while(|c| *c != '\n')
+                    .count();
+                self.comments.push(text.rest()[(count + 1)..(count + new_count)].into());
+                count += new_count;
+            } else {
+                if count < self.min_count {
+                    return Err(Some(ParseError::NotAType(text.offset(0))))
+                }
+                return Ok(text.offset(count));
+            }
+            if count < self.min_count {
+                return Err(Some(ParseError::NotAType(text.offset(0))))
+            }
         }
-        Err(Some(ParseError::NotAType(text.offset(0))))
     }
 }
 
@@ -754,6 +771,17 @@ mod test {
         assert_eq!(res.is_ok(), true);
         assert_eq!(res.as_ref().unwrap().view(), " \n\t");
         assert_eq!(res.as_ref().unwrap().rest(), "XXX");
+    }
+
+    #[test]
+    fn white_chars_with_comments() {
+        let mut wc_parser = WhiteChars::default();
+        let text = CodeView::from(" \n\t#first comment\n    \n#seccond comment");
+        let res = wc_parser.parse(&text);
+        assert_eq!(res.is_ok(), true);
+        assert_eq!(wc_parser.comments.len(), 2);
+        assert_eq!(wc_parser.comments[0], "first comment");
+        assert_eq!(wc_parser.comments[1], "seccond comment");
     }
 
     #[test]
