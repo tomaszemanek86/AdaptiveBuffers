@@ -12,6 +12,10 @@ enum MessageType : u16 {
     Output_AnOut    = h1060
 }
 
+###################################################
+# INPUT, OUTPUT - State of digital input
+###################################################
+
 struct ApKp_DigIn {
     hwid: u32,
     input_number: u8
@@ -37,6 +41,10 @@ struct ApKp_DigOut {
     output_state: u8
 }
 
+###################################################
+# INPUT, OUTPUT - State of digital output
+###################################################
+
 enum DigOutState : u8 {
     NotActive = b0,
     Blinking = b101,
@@ -50,6 +58,10 @@ struct KpAp_DigOut {
     old_state: u8,
     new_state: u8
 }
+
+###################################################
+# INPUT, OUTPUT - DOOR
+###################################################
 
 enum DoorState : u8 {
     RelayInactive = h0,
@@ -71,9 +83,23 @@ struct KpAp_DoorState {
     new_state: u8
 }
 
+###################################################
+# MODULES - Data from ADN module
+###################################################
+
 struct ApKp_ModuleDataFrom {
-    hwid: u32
+    hwid: u32,
+    data: [u8]
 }
+
+struct KpAp_ModuleDataTo {
+    hwid: u32,
+    data: [u8]
+}
+
+###################################################
+# MODULES - ADN Module state
+###################################################
 
 enum ModuleState : u16 {
     FaultAP = B0,
@@ -102,6 +128,10 @@ struct KpAp_AdnModuleState {
     module_state: u16,
     comm_state: u16
 }
+
+###################################################
+# MODULES - Power source state
+###################################################
 
 enum PwrState1 : u8 {
     RSer = B0,
@@ -139,4 +169,25 @@ struct ApKp_PwrState {
     state1: u8,
     state2: u8,
     state3: u8
+}
+
+###################################################
+# MODULES - Power source bind table
+###################################################
+
+ # TODO: dont fully understand to d3sb protocol
+
+struct PrwSrcBound {
+    hwid_module: u32,
+    hwid_pwrsrc: u32
+}
+
+view PrwSrcBoundView {
+    [PrwSrcBound],
+    u32 # hwid
+    # TODO: make no data e.g. 'empty'
+}
+
+struct ApKp_PrwSrcBound {
+    bound_table: PrwSrcBoundView
 }

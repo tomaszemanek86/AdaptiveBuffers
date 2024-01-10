@@ -11,6 +11,7 @@ pub fn generate_struct_serializer(m: &StructMemory, writer: &mut Writer) {
         }
     }
     generate_serialize(m, writer);
+    generate_init(m, writer);
     writer.private();
     for i in 0..m.fields.len() {
         generate_member_serialzier(m, i, writer);
@@ -75,5 +76,14 @@ fn generate_serialize(m: &StructMemory, writer: &mut Writer) {
         writer.write_line(&format!("offset += {}_.serialize(dest + offset);", sm.as_ref().variable()));
     }
     writer.write_line("return offset;");
+    writer.scope_out(false);
+}
+
+fn generate_init(m: &StructMemory, writer: &mut Writer) {
+    writer.write_with_offset("void init()");
+    writer.scope_in();
+    for sm in &m.fields {
+        writer.write_line(&format!("{}_.init();", sm.as_ref().variable()));
+    }
     writer.scope_out(false);
 }

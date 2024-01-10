@@ -9,6 +9,7 @@ pub fn generate_view_serializer(m: &ViewMemory, writer: &mut Writer) {
         generate_with_method(m, i, writer);
     }
     generate_serialize(m, writer);
+    generate_init(writer);
     generate_set_typypeid_serializer(m, writer);
     writer.private();
     generate_union(m, writer);
@@ -29,7 +30,7 @@ fn generate_union(m: &ViewMemory, writer: &mut Writer) {
     writer.write_line("Types() : __init(false) {}");
     writer.write_line("bool __init;");
     for t in &m.types {
-        writer.write_line(&format!("{} {};", t.serializer_typename(), t.name()));
+        writer.write_line(&format!("{} {};", t.serializer_typename(), t.variable()));
     }
     writer.scope_out(true);
 }
@@ -70,7 +71,7 @@ fn generate_serialize(m: &ViewMemory, writer: &mut Writer) {
     writer.write_with_offset("switch (type_id_)");
     writer.scope_in();
     for t in &m.types {
-        writer.write_line(&format!("case {}: return types_.{}.serialize(dest);", t.constant.get_value(), t.name()));
+        writer.write_line(&format!("case {}: return types_.{}.serialize(dest);", t.constant.get_value(), t.variable()));
     }
     writer.scope_out(false);
 
@@ -78,12 +79,19 @@ fn generate_serialize(m: &ViewMemory, writer: &mut Writer) {
     writer.scope_out(false);
 }
 
+fn generate_init(writer: &mut Writer) {
+    writer.write_with_offset("void init()");
+    writer.scope_in();
+    writer.write_line("set_ = false;");
+    writer.scope_out(false);
+}
+
 fn generate_with_method(m: &ViewMemory, i: usize, writer: &mut Writer) {
     match &m.types[i].memory {
         MemoryType::Native(_) => generate_with_native(m, i, writer),
-        MemoryType::Struct(_) => todo!(),
-        MemoryType::View(_) => todo!(),
-        MemoryType::Enum(_) => todo!(),
+        MemoryType::Struct(_) => generate_with_non_native(m, i, writer),
+        MemoryType::View(_) => generate_with_non_native(m, i, writer),
+        MemoryType::Enum(_) => generate_with_non_native(m, i, writer),
     }
 }
 
@@ -99,5 +107,23 @@ fn generate_with_native(m: &ViewMemory, i: usize, writer: &mut Writer) {
         t.variable()));
     writer.write_line(&format!("type_id_ = {};", m.types[i].constant.get_value()));
     writer.write_line("set_ = true;");
+    writer.scope_out(false);
+}
+
+fn generate_with_non_native(m: &ViewMemory, i: usize, writer: &mut Writer) {
+    let t = &m.types[i].memory;
+    writer.write_with_offset(&format!("{}& with_{}()",
+        t.serializer_typename(),
+        t.variable()));
+    writer.scope_in();
+    writer.write_with_offset(&format!("if (set_ == false || type_id_ != {})", m.types[i].constant.get_value()));
+    writer.scope_in();
+    writer.write_line(&format!("types_.{}.init();",
+        t.variable()));
+    writer.write_line(&format!("type_id_ = {};", m.types[i].constant.get_value()));
+    writer.scope_out(false);
+    writer.write_line("set_ = true;");
+    writer.write_line(&format!("return types_.{};",
+        t.variable()));
     writer.scope_out(false);
 }

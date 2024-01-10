@@ -13,6 +13,7 @@ pub fn generate_struct_deserializer(m: &StructMemory, writer: &mut Writer) {
     generate_deserialize_methods(m, 0, groups[0].0, groups[0].1, writer);
     generate_deserialized(m, writer);
     generate_source_set(m, writer);
+    generate_end(m, writer);
     writer.private();
     for i in 1..groups.len() {
         generate_deserialize_methods(m, i, groups[i].0, groups[i].1, writer);
@@ -143,5 +144,15 @@ fn generate_source_set(
     writer.write_with_offset(&format!("bool _source_set()"));
     writer.scope_in();
     writer.write_line(&format!("return {}_._source_set();", m.fields.first().unwrap().name));
+    writer.scope_out(false);
+}
+
+fn generate_end(
+    m: &StructMemory, 
+    writer: &mut Writer
+) {
+    writer.write_with_offset(&format!("uint8_t* _end()"));
+    writer.scope_in();
+    writer.write_line(&format!("return {}_._end();", m.fields.first().unwrap().name));
     writer.scope_out(false);
 }
