@@ -9,7 +9,10 @@ enum MessageType : u16 {
     Output_DigOut   = h1020,
     Output_Door     = h1021,
     Output_AnIn     = h1040,
-    Output_AnOut    = h1060
+    Output_AnOut    = h1060,
+
+    KP_ApuKpuState  = h10,
+    KP_Datetime     = h12
 }
 
 ###################################################
@@ -190,4 +193,68 @@ view PrwSrcBoundView {
 
 struct ApKp_PrwSrcBound {
     bound_table: PrwSrcBoundView
+}
+
+###################################################
+# COMMUNICATION PROCESSOR - APU and KPU state
+###################################################
+
+struct ApKp_ApKpState {
+    hwid: u32
+}
+
+enum ApKpState1 : u8 {
+    McuFwOutOfRange = B3,
+    CannotSaveToSFlash = B4,
+    CannotSaveToHeap = B5,
+    SavedToSFlash = B6,
+    SFlashPrograming = B7
+}
+
+enum ApKpState2 : u8 {
+    StateQueueErased = B5,
+    TooLongMessage = B4,
+    WrongCrc = B2
+}
+
+enum ApKpState3 : u8 {
+    KpuReseted = B7,
+    KpuWDActivatedLedFaultOff = B6
+}
+
+enum ApKpState4 : u8 {
+    Tamper1 = B1,
+    Tamper2 = B0
+}
+
+struct KpAp_ApKpState {
+    hwid: u32,
+    state1: u8,
+    state2: u8,
+    state3: u8,
+    state4: u8
+}
+
+###################################################
+# COMMUNICATION PROCESSOR - Date and time
+###################################################
+
+struct ApKp_Datetime {
+    year: u16,
+    month: u8,
+    day: u8,
+    wday: u8,
+    hour: u8,
+    minute: u8,
+    second: u8
+}
+
+struct KpAp_Datetime {
+    year: u16,
+    month: u8,
+    day: u8,
+    wday: u8,
+    hour: u8,
+    minute: u8,
+    second: u8
 }
