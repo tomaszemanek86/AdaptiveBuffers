@@ -141,6 +141,7 @@ impl MemoryDetails for NativeType {
             Self::Bool => Some(1),
             Self::U8 => Some(1),
             Self::U16 => Some(2),
+            Self::U24 => Some(3),
             Self::U32 => Some(4),
             Self::U64 => Some(8),
             Self::I8 => Some(1),

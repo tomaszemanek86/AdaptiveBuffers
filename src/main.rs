@@ -135,6 +135,7 @@ pub enum NativeType {
     Bool,
     U8,
     U16,
+    U24,
     U32,
     U64,
     I8,

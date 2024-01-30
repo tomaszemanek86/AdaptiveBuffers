@@ -111,6 +111,7 @@ impl AsMemory for Int {
             match self.bytes {
                 8 => Ok(MemoryType::Native(NativeType::U8).non_array_memory()),
                 16 => Ok(MemoryType::Native(NativeType::U16).non_array_memory()),
+                24 => Ok(MemoryType::Native(NativeType::U24).non_array_memory()),
                 32 => Ok(MemoryType::Native(NativeType::U32).non_array_memory()),
                 64 => Ok(MemoryType::Native(NativeType::U64).non_array_memory()),
                 _ => Err(InterpretError::UnknownIntSize(self.bytes)),
