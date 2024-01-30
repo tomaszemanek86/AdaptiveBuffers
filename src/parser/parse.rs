@@ -19,7 +19,7 @@ impl<TData: FromStr + TryFrom<usize> + Debug + Clone> Parser for Value<TData> {
                     .chars()
                     .skip(1)
                     .into_iter()
-                    .take_while(|c| is_a::is_digit(*c) || ('A'..'F').contains(c))
+                    .take_while(|c| is_a::is_digit(*c) || ('A'..'G').contains(c))
                     .count();
                 if let Ok(hex) = usize::from_str_radix(&text.rest()[1..(count + 1)], 16) {
                     if let Ok(value) = TData::try_from(hex) {

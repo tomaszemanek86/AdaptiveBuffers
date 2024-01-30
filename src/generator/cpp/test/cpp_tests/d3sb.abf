@@ -258,3 +258,253 @@ struct KpAp_Datetime {
     minute: u8,
     second: u8
 }
+
+
+###################################################
+# POWER SOURCE - I2C messages
+###################################################
+
+enum PwrSrcMsgType : u8 {
+    GetType                 = h00,
+    GetStatus               = h01,
+    GetSN                   = h02,
+    GetAnalog               = h03,
+    GetFWVersion            = h04,
+    GetClock                = h05,
+    SetClock                = h06,
+    EnableCharger           = h07,
+    EnableOut               = h08,
+    EnableOutHC             = h09,
+    EnableReducer           = h0A,
+    GetCapacity             = h0B,
+    SetCapacity             = h0C,
+    GetSoC                  = h0D,
+    GetSoH1                 = h0E,
+    GetSoH2                 = h0F,
+    GetMaxChargeCurrent     = h10,
+    SetMaxChargeCurrent     = h11,
+    GetMaxOutCurrent        = h12,
+    GetChargerDiagnostics   = h13,
+    GetStatistics           = hF0,
+    GetStatisticsLength     = hF1,
+    SetStatisticsPtrS       = hF2,
+    GetHistory              = hF3,
+    GetHistoryLenngth       = hF4,
+    SetHistoryPtrS          = hF5,
+    MemoryClear             = hDE,
+    NewFirmwareData        = hE0,
+    ConfirmFwBlockReception = hE1,
+    ProgramMCU              = hE2,
+    RevertToPreviousFw      = hE3,
+    SaveActualFw            = hE4
+}
+
+# GetType
+
+struct PwrSrc_GetType {
+    typ: u8,
+    hw_rev: u8,
+    fw_version: u16,
+    day: u8,
+    month: u8,
+    year: u8
+}
+
+# GetStatus
+
+enum PwrSrcStatus0 : u8 {
+    Overtemperature     = b00000001,
+    BatTempHigh         = b00000010,
+    BatMissing          = b00000100,
+    BatShorted          = b00001000,
+    ChargerState        = b00110000,
+    BatState            = b01000000,
+    Rser                = b10000000
+}
+
+enum PwrSrcStatus1 : u8 {
+    VinHigh     = b00000001,
+    VinLow      = b00000010,
+    VsysHigh    = b00000100,
+    VsysLow     = b00001000,
+    VbatHigh    = b00010000,
+    VbatLow     = b00100000,
+    IbatLow     = b01000000,
+    IinHigh     = b10000000
+}
+
+enum PwrSrcStatus2 : u8 {
+    CCUState    = b00000011,
+    OutHc       = b00000100,
+    OutState    = b00011000,
+    ReducerEn   = b00100000,
+    VSupHigh    = b01000000,
+    VsupLow     = b10000000
+}
+
+enum PsuState : u8 {
+    Disabled        = b00,
+    Ok              = b01,
+    Down            = b10,
+    NearOverload    = b11 # load over 70% of nominal fuse current
+}
+
+enum ChargerState : u8 {
+    Suspended           = b00,
+    ConstCurrentMode    = b01,
+    ConstVoltageMode    = b10,
+    MaintanenceMode     = b11
+}
+
+struct PwrSrc_GetStatus {
+    status0: u8,
+    status1: u8,
+    status2: u8
+}
+
+# Get S/N
+
+struct PwrSrc_SN {
+    serial_number: u64
+}
+
+struct PwrSrc_GetAnalog {
+    v_sup : u16,
+    v_in : u16,
+    i_in : u16,
+    v_sys : u16,
+    t_chip : u16, # [s]
+    v_bat : u16,
+    i_bat : u16, # [s]
+    r_bat : u16,
+    t_bat : u16, # [s]
+    v_out : u16,
+    i_out : u16,
+    v_ccu : u16,
+    i_ccu : u16
+}
+
+struct PwrSrc_GetFWVersion {
+    version: u16,
+    day: u8,
+    month: u8,
+    year: u8
+}
+
+struct PwrSrc_GetClock {
+    day: u8,
+    month: u8,
+    year: u8,
+    wday: u8,
+    hour: u8,
+    minute: u8,
+    second: u8
+}
+
+struct PwrSrc_SetClock {
+    day: u8,
+    month: u8,
+    year: u8,
+    wday: u8,
+    hour: u8,
+    minute: u8,
+    second: u8
+}
+
+struct PwrSrc_EnableCharger {
+    enable: u8
+}
+
+struct PwrSrc_EnableOut {
+    enable: u8
+}
+
+struct PwrSrc_EnableOutHC {
+    enable: u8
+}
+
+struct PwrSrc_EnableReducer {
+    enable: u8
+}
+
+struct PwrSrc_GetCapacity {
+    capacity: u8
+}
+
+struct PwrSrc_SetCapacity {
+    capacity: u8
+}
+
+struct PwrSrc_GetSoC {
+    soc: u8
+}
+
+struct PwrSrc_GetSoH1 {
+    soh: u8
+}
+
+struct PwrSrc_GetSoH2 {
+    soh: u8
+}
+
+struct PwrSrc_GetMaxChargeCurrent {
+    max_charge_current: u16
+}
+
+struct PwrSrc_SetMaxChargeCurrent {
+    max_charge_current: u16
+}
+
+struct PwrSrc_GetMaxOutCurrent {
+    max_out_current: u16
+}
+
+enum PwrSrcChargerDiagnostics : u16 {
+    intvcc_gt2p8v       = b0000000000000001,
+    intvcc_gt_4p3v      = b0000000000000010,
+    vin_gt_vbat         = b0000000000000100,
+    vin_ovlo            = b0000000000001000,
+    thermal_shutdown    = b0000000000010000,
+    no_rt               = b0000000000100000,
+    ok_to_charge        = b0000000001000000,
+    lead_acid_temp_comp = b0000000010000000,
+    cell_count_error    = b0000000100000000,
+    drvcc_good          = b0000001000000000,
+    equalize_req        = b0000010000000000,
+    mppt_en_pin         = b0000100000000000,
+    unused              = b0001000000000000,
+    charger_enabled     = b0010000000000000,
+    vin_uvcl_active     = b0100000000000000,
+    iin_limit_active    = b1000000000000000
+}
+
+struct PwrSrc_GetChargerDiagnostics {
+    diagostics: u16
+}
+
+struct PwrSrc_GetStatistics {
+    length: u16 = data.dimension,
+    data: [u8]
+}
+
+struct PwrSrc_GetStatisticsLength {
+    length: u64
+}
+
+# struct PwrSrc_SetStatisticsPtrS - is empty
+
+struct PwrSrc_GetHistory {
+    length: u16 = data.dimension,
+    data: [u8]
+}
+
+struct PwrSrc_GetHistoryLength {
+    length: u64
+}
+
+# struct PwrSrc_SetHistoryPtrS - is empty
+
+struct PwrSrc_MemoryClear {
+    type: u8 # TODO: make appropriate enum
+}
+
