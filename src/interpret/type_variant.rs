@@ -40,6 +40,7 @@ impl TypeVariant {
                             typ: Self::from_parser_typ(&member.typ.typ, member.typ.array_size.clone()),
                             constant: match &member.constant {
                                     parser::StructMemberConstant::No => None,
+                                    parser::StructMemberConstant::Usize(value) => Some(StructMemberConstant::Usize(*value)),
                                     parser::StructMemberConstant::ViewMemberKey(mr) => {
                                         Some(StructMemberConstant::ViewReferenceKey(mr.clone()))
                                     },

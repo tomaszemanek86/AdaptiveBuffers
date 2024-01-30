@@ -101,7 +101,8 @@ pub struct MemberReference {
 pub enum StructMemberConstant {
     No,
     ViewMemberKey(MemberReference),
-    ArrayDimension(MemberReference)
+    ArrayDimension(MemberReference),
+    Usize(usize)
 }
 
 #[derive(Debug, Default, Clone)]

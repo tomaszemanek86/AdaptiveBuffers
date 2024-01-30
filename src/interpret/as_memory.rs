@@ -33,6 +33,7 @@ impl AsMemory for Struct {
         for (i, f) in structure.borrow().fields.iter().enumerate() {
             if let Some(c) = &self.members[i].constant {
                 match c {
+                    StructMemberConstant::Usize(_value) => f.memory.borrow_mut().memory = MemoryType::Native(NativeType::Unknown), // TODO: make u8 constant
                     StructMemberConstant::ViewReferenceKey(mr) => {
                         let index = self.get_member_index_by_name(&mr.member_name.data).unwrap();
                         let native_key = Rc::new(self.members[i].typ.as_memory(others)?.memory.as_native().unwrap().clone());

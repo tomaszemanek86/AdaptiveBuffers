@@ -508,3 +508,6 @@ struct PwrSrc_MemoryClear {
     type: u8 # TODO: make appropriate enum
 }
 
+#struct PwrSrc_NewFirmwareData {
+#    byte0 : u8, // TODO: = hE0    
+#}

@@ -400,7 +400,7 @@ impl Parser for TypVariant {
             *self = TypVariant::Unknown(DataView::new(word.data, word.code_view));
             return Ok(res);
         }
-        return Err(Some(ParseError::NotAType(text.offset(0))));
+        Err(Some(ParseError::NotAType(text.offset(0))))
     }
 }
 

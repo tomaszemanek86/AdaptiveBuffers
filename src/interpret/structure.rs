@@ -31,6 +31,7 @@ impl Struct {
                     ));
                 }
                 match c {
+                    StructMemberConstant::Usize(_value) => todo!(),
                     StructMemberConstant::ViewReferenceKey(mr) => {
                         if let Some(t) = types.get_type(&mr.member_name.data)? {
                             if let Some(i) = self.get_member_index_by_name(&mr.member_name.data) {
