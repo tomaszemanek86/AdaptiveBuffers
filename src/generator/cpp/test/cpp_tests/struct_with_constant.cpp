@@ -1,6 +1,8 @@
 #include <utest/utest.h>
 #include "struct_with_constant.h"
 
+using namespace struct_with_constant;
+
 UTEST_MAIN();
 
 UTEST(struct_with_constant, serde) {

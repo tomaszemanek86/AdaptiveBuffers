@@ -1,6 +1,8 @@
 #include <utest/utest.h>
 #include "struct_with_natives.h"
 
+using namespace struct_with_natives;
+
 UTEST_MAIN();
 
 UTEST(struct_with_natives, serde) {

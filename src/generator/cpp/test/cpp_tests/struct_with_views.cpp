@@ -1,6 +1,8 @@
 #include <utest/utest.h>
 #include "struct_with_views.h"
 
+using namespace struct_with_views;
+
 UTEST_MAIN();
 
 UTEST(struct_with_views, serde) {

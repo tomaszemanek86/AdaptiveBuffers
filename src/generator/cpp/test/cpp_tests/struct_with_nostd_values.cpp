@@ -1,6 +1,8 @@
 #include <utest/utest.h>
 #include "struct_with_nostd_values.h"
 
+using namespace struct_with_nostd_values;
+
 UTEST_MAIN();
 
 UTEST(struct_with_nostd_values, serde) {
