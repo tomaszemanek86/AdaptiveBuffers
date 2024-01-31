@@ -57,6 +57,7 @@ pub fn generate(m: &Vec<MemoryDeclaration>, byte_swap: bool, args: &Args) {
     let _ = f.write_all(abf_source_code.as_bytes()).expect("write abf.h failed");
     
     let mut writer = Writer::new(&format!("{}/{}.h", args.output_dir, output_file));
+    writer.write_line("#pragma once");
     writer.write_line("#include \"abf.h\"");
     for md in m {
         match &md.memory.memory {
