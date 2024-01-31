@@ -1,4 +1,4 @@
-endian big
+endian little
 
 enum MessageType : u16 {
     CRT_State       = h0100,
