@@ -6,7 +6,8 @@ pub fn generate_enum_serializer(m: &EnumMemory, writer: &mut Writer) {
     writer.public();
     generate_ctor(m, writer);
     generate_with_method(m, writer);
-    generate_serialize(m, writer);
+    generate_size(writer);
+    generate_serialize(writer);
     writer.private();
     writer.write_line(&format!("abf::NativeSerializer<{}, {}> native_;", m.underlaying_type.native_typename(), m.underlaying_type.bytes().unwrap()));
     writer.scope_out(true);
@@ -23,9 +24,16 @@ fn generate_with_method(m: &EnumMemory, writer: &mut Writer) {
     writer.scope_out(false);
 }
 
-fn generate_serialize(m: &EnumMemory, writer: &mut Writer) {
+fn generate_serialize(writer: &mut Writer) {
     writer.write_with_offset("uint32_t serialize(uint8_t* dest)");
     writer.scope_in();
     writer.write_line("return native_.serialize(dest);");
+    writer.scope_out(false);
+}
+
+fn generate_size(writer: &mut Writer) {
+    writer.write_with_offset("uint32_t size()");
+    writer.scope_in();
+    writer.write_line("return native_.size();");
     writer.scope_out(false);
 }

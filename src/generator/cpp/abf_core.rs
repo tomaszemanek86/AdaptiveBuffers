@@ -262,6 +262,10 @@ namespace abf {
             size_->init();
         }
 
+        uint32_t size() {
+            return array_.size();
+        }
+
         void set_size_serializer(TSizeSerializer *size) {
             size_ = size;
         }

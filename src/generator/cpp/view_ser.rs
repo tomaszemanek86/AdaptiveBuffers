@@ -9,6 +9,7 @@ pub fn generate_view_serializer(m: &ViewMemory, writer: &mut Writer) {
         generate_with_method(m, i, writer);
     }
     generate_serialize(m, writer);
+    generate_size(m, writer);
     generate_init(writer);
     generate_set_typypeid_serializer(m, writer);
     writer.private();
@@ -73,6 +74,30 @@ fn generate_serialize(m: &ViewMemory, writer: &mut Writer) {
     writer.scope_in();
     for t in &m.types {
         writer.write_line(&format!("case {}: return types_.{}.serialize(dest);", t.constant.get_value(), t.variable()));
+    }
+    writer.scope_out(false);
+
+    writer.write_line("throw std::runtime_error(\"Unknown type id\");");
+    writer.scope_out(false);
+}
+
+fn generate_size(m: &ViewMemory, writer: &mut Writer) {
+    writer.write_with_offset("uint32_t size()");
+    writer.scope_in();
+    writer.write_with_offset("if (!set_)");
+    writer.scope_in();
+    writer.write_line("throw std::runtime_error(\"Not set\");");
+    writer.scope_out(false);
+
+    writer.write_with_offset("if (type_id_setter_ != nullptr)");
+    writer.scope_in();
+    writer.write_line(&format!("type_id_setter_->set_{}(type_id_);", m.get_index_typename().name()));
+    writer.scope_out(false);
+
+    writer.write_with_offset("switch (type_id_)");
+    writer.scope_in();
+    for t in &m.types {
+        writer.write_line(&format!("case {}: return types_.{}.size();", t.constant.get_value(), t.variable()));
     }
     writer.scope_out(false);
 
