@@ -1,0 +1,6 @@
+endian big
+
+struct NoStdValues {
+    a: u24,
+    b: u24 = 1234
+}

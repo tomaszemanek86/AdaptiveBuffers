@@ -509,8 +509,8 @@ struct PwrSrc_MemoryClear {
 }
 
 struct PwrSrc_NewFirmwareData {
-    byte0 : u8 = hE0
-    #address: u24,
+    byte0 : u8 = hE0,
+    address: u24,
     length: u16 = data.dimension,
     data: [u8],
     crc: u16

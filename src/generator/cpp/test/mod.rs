@@ -5,17 +5,12 @@ use super::*;
 static TEST_DIR: &str = "src/generator/cpp/test/cpp_tests";
 static THIS_DIR: &str = "src/generator/cpp/test";
 
-fn compile_cpp(cpp_file: &str, object_file: &str) {
+fn compile_cpp(cpp_file: &str, object_file: &str, include_dir: &str) {
     let pwd = std::env::current_dir().unwrap().to_string_lossy().to_string();
-    let basename = std::path::Path::new(cpp_file)
-        .file_stem()
-        .expect("could not extract stem")
-        .to_str()
-        .unwrap();
     let term_out = std::process::Command::new("g++")
         .args(&[
             &format!("-I{}", TEST_DIR),
-            &format!("-I{}/{}", TEST_DIR, basename),
+            &format!("-I{}", include_dir),
             &format!("-I{}/{}", pwd, THIS_DIR),
             "-std=c++20",
             "-c",
@@ -30,7 +25,8 @@ fn compile_cpp(cpp_file: &str, object_file: &str) {
     println!("{}", String::from_utf8(term_out.stderr).unwrap());
 }
 
-fn generate_test(buffer_file: &str, test_file: &str, generate: bool) {
+fn generate_test(buffer_file: &str, test_file: &str, generate: bool, big_endian: bool) {
+    let endian: String = if big_endian { "big".into() } else { "little".into() };
     let pwd = std::env::current_dir().unwrap().to_string_lossy().to_string();
     let test_file_noext = std::path::Path::new(test_file)
         .file_stem()
@@ -38,9 +34,11 @@ fn generate_test(buffer_file: &str, test_file: &str, generate: bool) {
         .to_str()
         .unwrap();
 
-    let test_out_dir = format!("{}/{}/{}", pwd, TEST_DIR, test_file_noext);
+    let test_out_dir = format!("{}/{}/{}_{}_endian", pwd, TEST_DIR, test_file_noext, endian);
 
-    let _ = std::fs::remove_dir_all(&test_out_dir); // try remove folder
+    if generate {
+        let _ = std::fs::remove_dir_all(&test_out_dir); // try remove folder
+    }
 
     let buffer_file_path = format!("{}/{}/{}", pwd, TEST_DIR, buffer_file);
     let source = std::fs::read_to_string(buffer_file_path)
@@ -52,7 +50,7 @@ fn generate_test(buffer_file: &str, test_file: &str, generate: bool) {
             &Args {
                 protofile: buffer_file.into(),
                 language: Language::Cpp,
-                endian: "big".into(),
+                endian: endian,
                 output_dir: test_out_dir.clone(),
             },
         );
@@ -62,7 +60,8 @@ fn generate_test(buffer_file: &str, test_file: &str, generate: bool) {
 
     compile_cpp(
         &format!("{}.cpp", test_file_noext),
-        &object_file
+        &object_file,
+        &test_out_dir
     );
 
     let out = format!("{}/{}", test_out_dir, test_file_noext);
