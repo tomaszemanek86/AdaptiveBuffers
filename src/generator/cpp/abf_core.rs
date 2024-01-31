@@ -1,3 +1,5 @@
+//#include <iostream>
+//#define LOGE(msg) std::cerr << msg << std::endl;
 pub static SOURCE: &str = "
 #pragma once
 #include <cstdint>
@@ -5,9 +7,6 @@ pub static SOURCE: &str = "
 #include <stdexcept>
 #include <vector>
 #include <limits>
-
-#include <iostream>
-#define LOGE(msg) std::cerr << msg << std::endl;
 
 namespace abf {
 <<BSWAP_SOURCE>>
