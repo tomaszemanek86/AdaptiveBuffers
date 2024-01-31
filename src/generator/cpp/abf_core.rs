@@ -84,17 +84,17 @@ namespace abf {
     template <typename TSerializer, typename TValue, TValue Value>
     class ConstantSerializer {
     public:
-        using Data = TData;
+        using Data = TSerializer::Data;
 
         ConstantSerializer() : serializer_() {
-            serializer_.set_data(value);
+            serializer_.set_data(Value);
         }
 
         uint32_t serialize(uint8_t* dest) {
             return serializer_.serialize(dest);
         }
 
-        void set_data(TData data) {
+        void set_data(Data data) {
         }
 
         uint32_t size() {
