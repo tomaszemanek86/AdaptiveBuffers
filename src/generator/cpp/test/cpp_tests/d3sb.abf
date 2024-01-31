@@ -504,6 +504,17 @@ struct PwrSrc_GetHistoryLength {
 
 # struct PwrSrc_SetHistoryPtrS - is empty
 
+enum PwrSrcMemoryType : u8 {
+    FirmwareInfoSpace = 1,
+    NewFirmwareSpace = 2,
+    OldFirmwareSpace = 3,
+    AllFirmwareSpace = 4,
+    StatisticsSpace = 5,
+    EventSpace = 6,
+    StatisticsAndEventSpace = 7,
+    ChipErase = 8
+}
+
 struct PwrSrc_MemoryClear {
     type: u8 # TODO: make appropriate enum
 }
@@ -514,4 +525,29 @@ struct PwrSrc_NewFirmwareData {
     length: u16 = data.dimension,
     data: [u8],
     crc: u16
+}
+
+struct PwrSrc_ConfirmFWBlockReception {
+    status : u8,
+    address: u24,
+    length: u16,
+    corrupted_sector_addr: u64
+}
+
+struct PwrSrc_ProgramMCU {
+    byte0 : u8 = hE0,
+    day: u8,
+    month: u8,
+    year: u8,
+    fw_version: u16,
+    crc: u16,
+    nr_segments: u16
+}
+
+struct PwrSrc_RevertToPreviousFW {
+    byte0 : u8 = hE0
+}
+
+struct PwrSrc_SaveActualFW {
+    byte0 : u8 = hE0
 }
