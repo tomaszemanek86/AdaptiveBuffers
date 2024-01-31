@@ -28,6 +28,7 @@ fn generate_union(m: &ViewMemory, writer: &mut Writer) {
     writer.write_with_offset("union Types");
     writer.scope_in();
     writer.write_line("Types() : __init(false) {}");
+    writer.write_line("~Types() {}");
     writer.write_line("bool __init;");
     for t in &m.types {
         writer.write_line(&format!("{} {};", t.serializer_typename(), t.variable()));
@@ -39,12 +40,12 @@ fn generate_constant(m: &ViewMemory, writer: &mut Writer) {
     match m.types.last().unwrap().constant {
         ViewPosibilityConstantMemory::Default(_) => writer.write_line(&format!("{} type_id_;", m.get_index_typename().native_typename())),
         ViewPosibilityConstantMemory::Usize(_) => writer.write_line(&format!("{} type_id_;", m.get_index_typename().native_typename())),
-        ViewPosibilityConstantMemory::EnumMemberRef(_) => todo!(),
+        ViewPosibilityConstantMemory::EnumMemberRef(_) => writer.write_line(&format!("{} type_id_;", m.get_index_typename().native_typename())),
     }
     match m.types.last().unwrap().constant {
         ViewPosibilityConstantMemory::Default(_) => writer.write_line("abf::IViewKeySetter* type_id_setter_;"),
         ViewPosibilityConstantMemory::Usize(_) => writer.write_line("abf::IViewKeySetter* type_id_setter_;"),
-        ViewPosibilityConstantMemory::EnumMemberRef(_) => todo!(),
+        ViewPosibilityConstantMemory::EnumMemberRef(_) => writer.write_line("abf::IViewKeySetter* type_id_setter_;"),
     }
 }
 

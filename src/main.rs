@@ -17,6 +17,7 @@ mod enum_memory;
 mod array_size;
 
 use clap::Parser;
+use interpret::InterpretError;
 use std::{fmt::Display, fs, process::exit, rc::Rc, cell::RefCell};
 
 #[derive(Clone, Default, Debug)]
@@ -210,7 +211,7 @@ pub struct MemoryImage {
     memory_decl: Vec<MemoryDeclaration>
 }
 
-fn interpet_memory(content: String) -> MemoryImage {
+fn interpet_memory(content: String) -> Result<MemoryImage, InterpretError> {
     let tokens = parser::parse(content)
         .or_else(|e| -> Result<Vec<parser::SyntaxToken>, String> {
             log::error!("parse error: {}", e.to_string());
@@ -218,11 +219,6 @@ fn interpet_memory(content: String) -> MemoryImage {
         })
         .unwrap();
     interpret::interpret(tokens)
-        .or_else(|e| -> Result<MemoryImage, String> {
-            log::error!("interpreting failed: {}", e.to_string());
-            exit(1);
-        })
-        .unwrap()
 }
 
 fn generate_cpp(memory_image: MemoryImage, args: &Args) {
@@ -281,12 +277,16 @@ fn main() {
     let content = fs::read_to_string(args.protofile.as_str())
         .or_else(|_| -> Result<String, String> {
             log::error!("Unable to read {}", &args.protofile);
-            exit(1);
+            exit(1)
         })
         .unwrap();
     let memory_image = interpet_memory(content);
+    if memory_image.is_err() {
+        log::error!("interpreting failed: {}", memory_image.err().unwrap().to_string());
+        return
+    }
     match language {
-        Language::Cpp => generate_cpp(memory_image, &args),
+        Language::Cpp => generate_cpp(memory_image.unwrap(), &args),
         _ => panic!("unexpected langage")
     }
 }

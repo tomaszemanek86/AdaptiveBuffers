@@ -551,3 +551,43 @@ struct PwrSrc_RevertToPreviousFW {
 struct PwrSrc_SaveActualFW {
     byte0 : u8 = hE0
 }
+
+view PwrSrc_MessageView {
+    PwrSrc_GetType = PwrSrcMsgType::GetType,
+    PwrSrc_GetStatus = PwrSrcMsgType::GetStatus,
+    PwrSrc_SN = PwrSrcMsgType::GetSN,
+    PwrSrc_GetAnalog = PwrSrcMsgType::GetAnalog,
+    PwrSrc_GetFWVersion = PwrSrcMsgType::GetFWVersion,
+    PwrSrc_GetClock = PwrSrcMsgType::GetClock,
+    PwrSrc_SetClock = PwrSrcMsgType::SetClock,
+    PwrSrc_EnableCharger = PwrSrcMsgType::EnableCharger,
+    PwrSrc_EnableOut = PwrSrcMsgType::EnableOut,
+    PwrSrc_EnableOutHC = PwrSrcMsgType::EnableOutHC,
+    PwrSrc_EnableReducer = PwrSrcMsgType::EnableReducer,
+    PwrSrc_GetCapacity = PwrSrcMsgType::GetCapacity,
+    PwrSrc_SetCapacity = PwrSrcMsgType::SetCapacity,
+    PwrSrc_GetSoC = PwrSrcMsgType::GetSoC,
+    PwrSrc_GetSoH1 = PwrSrcMsgType::GetSoH1,
+    PwrSrc_GetSoH2 = PwrSrcMsgType::GetSoH2,
+    PwrSrc_GetMaxChargeCurrent = PwrSrcMsgType::GetMaxChargeCurrent,
+    PwrSrc_SetMaxChargeCurrent = PwrSrcMsgType::SetMaxChargeCurrent,
+    PwrSrc_GetMaxOutCurrent = PwrSrcMsgType::GetMaxOutCurrent,
+    PwrSrc_GetChargerDiagnostics = PwrSrcMsgType::GetChargerDiagnostics,
+    PwrSrc_GetStatistics = PwrSrcMsgType::GetStatistics,
+    PwrSrc_GetStatisticsLength = PwrSrcMsgType::GetStatisticsLength,
+    # PwrSrc_SetStatisticsPtrS = PwrSrcMsgType::SetStatisticsPtrS, -- TODO: support empty struct
+    PwrSrc_GetHistory = PwrSrcMsgType::GetHistory,
+    PwrSrc_GetHistoryLength = PwrSrcMsgType::GetHistoryLenngth,
+    # PwrSrc_SetHistoryPtrS = PwrSrcMsgType::SetHistoryPtrS,
+    PwrSrc_MemoryClear = PwrSrcMsgType::MemoryClear,
+    PwrSrc_NewFirmwareData = PwrSrcMsgType::NewFirmwareData,
+    PwrSrc_ConfirmFWBlockReception = PwrSrcMsgType::ConfirmFwBlockReception,
+    PwrSrc_ProgramMCU = PwrSrcMsgType::ProgramMCU,
+    PwrSrc_RevertToPreviousFW = PwrSrcMsgType::RevertToPreviousFw,
+    PwrSrc_SaveActualFW = PwrSrcMsgType::SaveActualFw
+}
+
+struct PwrSrc_Message {
+    command: u8 = message.key,
+    message: PwrSrc_MessageView
+}

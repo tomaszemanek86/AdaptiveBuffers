@@ -46,7 +46,8 @@ fn generate_test(buffer_file: &str, test_file: &str, generate: bool, big_endian:
 
     if generate {
         generate_cpp(
-            interpet_memory(source),
+            interpet_memory(source)
+                .unwrap_or_else(|e| panic!("interpret failed: {}", e.to_string())),
             &Args {
                 protofile: buffer_file.into(),
                 language: Language::Cpp,
@@ -82,8 +83,10 @@ fn generate_test(buffer_file: &str, test_file: &str, generate: bool, big_endian:
     let stdout = String::from_utf8(result.stdout).unwrap();
     let stderr = String::from_utf8(result.stderr).unwrap();
 
+    let status = result.status.success();
+
     println!("{}", stdout);
     println!("{}", stderr);
 
-    assert!(result.status.success());
+    assert!(status);
 }

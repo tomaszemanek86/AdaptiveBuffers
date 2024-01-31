@@ -59,8 +59,7 @@ pub fn generate(m: &Vec<MemoryDeclaration>, byte_swap: bool, args: &Args) {
     let mut writer = Writer::new(&format!("{}/{}.h", args.output_dir, output_namespace));
     writer.write_line("#pragma once");
     writer.write_line("#include \"abf.h\"");
-    writer.write(&format!("namespace {} ", output_namespace));
-    writer.scope_in();
+    writer.write_line(&format!("namespace {} {{", output_namespace));
     for md in m {
         match &md.memory.memory {
             MemoryType::Native(_) => panic!("Unexpected"),
@@ -79,6 +78,6 @@ pub fn generate(m: &Vec<MemoryDeclaration>, byte_swap: bool, args: &Args) {
             },
         }
     }
-    writer.scope_out(false)
+    writer.write_line("}");
     
 }

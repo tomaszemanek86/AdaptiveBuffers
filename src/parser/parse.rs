@@ -1027,4 +1027,27 @@ mod test {
         assert_eq!(parser.types[1].typ.typ.is_int(), true);
         assert_eq!(parser.types[2].typ.typ.is_unknown(), true);
     }
+
+    #[test]
+    fn view_with_enum_constants() {
+        let mut parser = View::default();
+        let res = parser.parse(&CodeView::from(
+            "view AnView {
+            u8 = AnEnum::U8, 
+            u16 = AnEnum::U16
+        }",
+        ));
+        assert_eq!(res.is_ok(), true);
+        assert_eq!(parser.name, "AnView");
+        assert_eq!(parser.types.len(), 2);
+        assert_eq!(parser.types[0].typ.typ.is_int(), true);
+        assert_eq!(parser.types[0].constant.is_some(), true);
+        assert_eq!(parser.types[0].constant.as_ref().unwrap().is_enum_member_ref(), true);
+        assert_eq!(parser.types[0].constant.as_ref().unwrap().as_enum_member_ref().unwrap().enum_name.data, "AnEnum");
+        assert_eq!(parser.types[0].constant.as_ref().unwrap().as_enum_member_ref().unwrap().enum_member.data, "U8");
+        assert_eq!(parser.types[1].typ.typ.is_int(), true);
+        assert_eq!(parser.types[1].constant.as_ref().unwrap().is_enum_member_ref(), true);
+        assert_eq!(parser.types[1].constant.as_ref().unwrap().as_enum_member_ref().unwrap().enum_name.data, "AnEnum");
+        assert_eq!(parser.types[1].constant.as_ref().unwrap().as_enum_member_ref().unwrap().enum_member.data, "U16");
+    }
 }
