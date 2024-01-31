@@ -36,6 +36,11 @@ fn struct_with_reference_view() {
 }
 
 #[test]
+fn struct_with_constant() {
+    generate_test("struct_with_constant.abf", "struct_with_constant.cpp", true);
+}
+
+#[test]
 fn enum1() {
     generate_test("enum1.abf", "enum1.cpp", true);
 }

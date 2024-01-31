@@ -48,6 +48,67 @@ namespace abf {
         bool set_;
     };
 
+    template <typename TData, uint32_t Size, uint32_t ToSize>
+    class StrippingNativeSerializer {
+    public:
+        using Data = TData;
+
+        StrippingNativeSerializer() : data_(), set_(false) {}
+
+        uint32_t serialize(uint8_t* dest) {
+            if (!set_) {
+                throw std::runtime_error(\"Not set\");
+            }
+            copy_stripped(dest, &data_, Size, ToSize);
+            return Size;
+        }
+
+        void set_data(TData data) {
+            data_ = data;
+            set_ = true;
+        }
+
+        uint32_t size() {
+            return Size;
+        }
+
+        void init() {
+            set_ = false;
+        }
+
+    private:
+        TData data_;
+        bool set_;
+    };
+
+    template <typename TSerializer, typename TValue, TValue Value>
+    class ConstantSerializer {
+    public:
+        using Data = TData;
+
+        ConstantSerializer() : serializer_() {
+            serializer_.set_data(value);
+        }
+
+        uint32_t serialize(uint8_t* dest) {
+            return serializer_.serialize(dest);
+        }
+
+        void set_data(TData data) {
+        }
+
+        uint32_t size() {
+            return serializer_.size();
+        }
+
+        void init() {
+            serializer_.init();
+        }
+
+    private:
+        TSerializer serializer_;
+    };
+
     template <typename TSerializer>
     class LazySerializer {
     public:
@@ -519,15 +580,19 @@ inline uint64_t bswap64(uint64_t value) {
     return (static_cast<uint64_t>(bswap32(static_cast<uint32_t>(value))) << 32) |
            (bswap32(static_cast<uint32_t>(value >> 32)));
 }
+
 inline void bswap8_ptr(uint8_t* ptr) {
     *ptr = bswap8(*ptr);
 }
+
 inline void bswap16_ptr(uint16_t* ptr) {
     *ptr = bswap16(*ptr);
 }
+
 inline void bswap32_ptr(uint32_t* ptr) {
     *ptr = bswap32(*ptr);
 }
+
 inline void bswap64_ptr(uint64_t* ptr) {
     *ptr = bswap64(*ptr);
 }
@@ -549,10 +614,34 @@ inline void copy(void* dest, void* source, size_t size) {
             break;
     }
 }
+
+inline void copy_stripped(void* dest, void* source, size_t size, size_t striped_size) {
+    std::memcpy(dest, source, size);
+    switch (size) {
+        case 1:
+            bswap8_ptr(static_cast<uint8_t*>(dest));
+            break;
+        case 2:
+            bswap16_ptr(static_cast<uint16_t*>(dest));
+            break;
+        case 3:
+            bswap32_ptr(static_cast<uint32_t*>(dest));
+            break;
+        case 4:
+            bswap32_ptr(static_cast<uint32_t*>(dest));
+            break;
+        case 8:
+            bswap64_ptr(static_cast<uint64_t*>(dest));
+            break;
+    }
+}
 ";
 
 pub static NO_BSWAP_SOURCE: &str = "
 inline void copy(void* dest, void* source, size_t size) {
     std::memcpy(dest, source, size);
+}
+inline void copy_stripped(void* dest, void* source, size_t size, size_t striped_size) {
+    std::memcpy(dest, static_cast<uint8_t*>(source) + striped_size, size);
 }
 ";

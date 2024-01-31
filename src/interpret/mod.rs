@@ -38,7 +38,10 @@ pub enum InterpretError {
     ViewEmpty(String),
     VievConstantsMustBeAllEnumsOrAllIntsOrAllUndefined,
     EndianNotSet,
-    EndianOverrided(CodeView, CodeView)
+    EndianOverrided(CodeView, CodeView),
+    GenericError(String),
+    GenericWithPosError(CodeView, String),
+    CannotAsignUsizeCstToNonUnsignedMemory(usize)
 }
 
 #[derive(variation::Variation, Clone)]

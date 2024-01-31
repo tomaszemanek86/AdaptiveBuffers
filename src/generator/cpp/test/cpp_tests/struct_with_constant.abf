@@ -1,0 +1,7 @@
+endian big
+
+struct Message {
+    byte0: u8 = he0,
+    byte1: u8 = b11,
+    value: u16
+}

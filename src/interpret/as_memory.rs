@@ -13,27 +13,33 @@ impl AsMemory for Struct {
             fields: Vec::new(),
         }));
         for member in &self.members {
-            if let Some(_) = &member.constant {
-                structure.borrow_mut().fields.push(Rc::new(StructMemberMemory {
-                    name: member.name.data.clone(),
-                    index: member.index,
-                    memory: RefCell::new(MemoryType::Native(NativeType::Unknown).non_array_memory()),
-                    structure: structure.clone()
-                }))
-            } else {
-                structure.borrow_mut().fields.push(Rc::new(StructMemberMemory {
-                    name: member.name.data.clone(),
-                    index: member.index,
-                    memory: RefCell::new(member.typ.as_memory(others)?),
-                    structure: structure.clone()
-                }));
+            if let Some(c) = &member.constant {
+                if !c.is_usize() {
+                    structure.borrow_mut().fields.push(Rc::new(StructMemberMemory {
+                        name: member.name.data.clone(),
+                        index: member.index,
+                        memory: RefCell::new(MemoryType::Native(NativeType::Unknown).non_array_memory()),
+                        structure: structure.clone()
+                    }));
+                    continue
+                }
             }
+            structure.borrow_mut().fields.push(Rc::new(StructMemberMemory {
+                name: member.name.data.clone(),
+                index: member.index,
+                memory: RefCell::new(member.typ.as_memory(others)?),
+                structure: structure.clone()
+            }));
         }
         // resolve view reference keys
         for (i, f) in structure.borrow().fields.iter().enumerate() {
             if let Some(c) = &self.members[i].constant {
                 match c {
-                    StructMemberConstant::Usize(_value) => f.memory.borrow_mut().memory = MemoryType::Native(NativeType::Unknown), // TODO: make u8 constant
+                    StructMemberConstant::Usize(value) => if let Some(nm) = f.memory.borrow_mut().memory.as_native_mut() {
+                        nm.make_const(*value).map_err(|e| InterpretError::GenericError(e))?
+                    } else {
+                        return Err(InterpretError::CannotAsignUsizeCstToNonUnsignedMemory(*value))
+                    },
                     StructMemberConstant::ViewReferenceKey(mr) => {
                         let index = self.get_member_index_by_name(&mr.member_name.data).unwrap();
                         let native_key = Rc::new(self.members[i].typ.as_memory(others)?.memory.as_native().unwrap().clone());

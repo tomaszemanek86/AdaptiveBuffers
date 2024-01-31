@@ -19,7 +19,7 @@ impl<TData: FromStr + TryFrom<usize> + Debug + Clone> Parser for Value<TData> {
                     .chars()
                     .skip(1)
                     .into_iter()
-                    .take_while(|c| is_a::is_digit(*c) || ('A'..'G').contains(c))
+                    .take_while(|c| is_a::is_digit(*c) || ('A'..'G').contains(c) || ('a'..'g').contains(c))
                     .count();
                 if let Ok(hex) = usize::from_str_radix(&text.rest()[1..(count + 1)], 16) {
                     if let Ok(value) = TData::try_from(hex) {
@@ -453,9 +453,10 @@ impl<'b> Parser for MemberReference {
 
 impl<'b> Parser for StructMemberConstant {
     fn parse<'a>(&mut self, text: &CodeView) -> Result<CodeView, Option<ParseError>> {
+        let mut value = Value::<usize>::default();
         let mut view_reference = MemberReference::new("key");
         let mut array_dimension = MemberReference::new("dimension");
-        let mut or_posibilities: [&mut dyn Parser; 2] = [&mut view_reference, &mut array_dimension];
+        let mut or_posibilities: [&mut dyn Parser; 3] = [&mut view_reference, &mut array_dimension, &mut value];
         let mut or = Or::new(
             &mut or_posibilities,
             "View reference or size of struct member",
@@ -464,6 +465,7 @@ impl<'b> Parser for StructMemberConstant {
         match or.index {
             0 => *self = StructMemberConstant::ViewMemberKey(view_reference),
             1 => *self = StructMemberConstant::ArrayDimension(array_dimension),
+            2 => *self = StructMemberConstant::Usize(value.value.unwrap()),
             _ => panic!("Unexpected index"),
         }
         Ok(res)
