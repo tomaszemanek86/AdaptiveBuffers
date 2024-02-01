@@ -67,12 +67,15 @@ fn generate_test(buffer_file: &str, test_file: &str, generate: bool, big_endian:
 
     let out = format!("{}/{}", test_out_dir, test_file_noext);
 
-    std::process::Command::new("g++")
+    let res = std::process::Command::new("g++")
         .args(&[&object_file,
                 "-o",
                 &out])
         .output()
         .expect("linking failed");
+
+    let mut stderr = String::from_utf8(res.stderr).unwrap();
+    println!("{}", stderr);
 
     let result = std::process::Command::new(&out)
         .stdout(std::process::Stdio::piped())
@@ -81,7 +84,7 @@ fn generate_test(buffer_file: &str, test_file: &str, generate: bool, big_endian:
         .expect("test failed");
 
     let stdout = String::from_utf8(result.stdout).unwrap();
-    let stderr = String::from_utf8(result.stderr).unwrap();
+    stderr = String::from_utf8(result.stderr).unwrap();
 
     let status = result.status.success();
 

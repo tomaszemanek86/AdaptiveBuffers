@@ -106,15 +106,6 @@ impl TypeVariant {
             TypeVariant::Unknown(_) => panic!("unexpected unknoqn type"),
         }
     }
-    pub fn has_known_type(&self, name: &str) -> bool {
-        match self {
-            TypeVariant::Struct(structure) => return structure.borrow().name.data == name,
-            TypeVariant::View(view) => return view.borrow().name == name,
-            TypeVariant::Enum(_) => return false,
-            TypeVariant::Int(_) => return true,
-            TypeVariant::Unknown(_) => panic!("unexpected unknoqn type"),
-        }
-    }
     pub fn check_type(&self, types: &Types) -> Result<(), InterpretError> {
         match self {
             TypeVariant::Struct(s) => s.borrow().check_type(types),

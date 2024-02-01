@@ -492,6 +492,7 @@ struct PwrSrc_GetStatisticsLength {
 }
 
 # struct PwrSrc_SetStatisticsPtrS - is empty
+struct PwrSrc_SetStatisticsPtrS {}
 
 struct PwrSrc_GetHistory {
     length: u16 = data.dimension,

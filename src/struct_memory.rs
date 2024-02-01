@@ -1,3 +1,5 @@
+use std::default;
+
 use super::*;
 
 impl StructMemory {
@@ -47,6 +49,9 @@ impl StructMemory {
     }
 
     pub fn get_groups(&self) -> std::vec::Vec<(usize, usize)> {
+        if self.fields.is_empty() {
+            return Default::default()
+        }
         let mut out = std::vec::Vec::default();
         let mut i0 = 0;
         for i in 0..self.fields.len() {

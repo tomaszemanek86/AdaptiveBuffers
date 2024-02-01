@@ -8,6 +8,7 @@ pub fn generate_enum_serializer(m: &EnumMemory, writer: &mut Writer) {
     generate_with_method(m, writer);
     generate_size(writer);
     generate_serialize(writer);
+    generate_serialize_into_vector(writer);
     writer.private();
     writer.write_line(&format!("abf::NativeSerializer<{}, {}> native_;", m.underlaying_type.native_typename(), m.underlaying_type.bytes().unwrap()));
     writer.scope_out(true);

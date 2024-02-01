@@ -81,3 +81,12 @@ pub fn generate(m: &Vec<MemoryDeclaration>, byte_swap: bool, args: &Args) {
     writer.write_line("}");
     
 }
+
+fn generate_serialize_into_vector(writer: &mut Writer) {
+    writer.write_with_offset("std::vector<uint8_t> serialize() ");
+    writer.scope_in();
+    writer.write_line("std::vector<uint8_t> out(size(), 0);");
+    writer.write_line("serialize(out.data());");
+    writer.write_line("return out;");
+    writer.scope_out(false);
+}

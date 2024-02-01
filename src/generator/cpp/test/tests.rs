@@ -111,22 +111,32 @@ fn enum1() {
 }
 
 #[test]
-fn d3sb() {
-    generate_test(
-        "d3sb.abf", 
-        "d3sb.cpp", 
-        true, 
-        false
-    );
-}
-
-#[test]
 fn bswap() {
     generate_test(
         "no_type.abf", 
         "bswap.cpp", 
         true, 
         true
+    );
+}
+
+#[test]
+fn empty_struct() {
+    generate_test(
+        "empty_struct.abf", 
+        "empty_struct.cpp", 
+        true, 
+        true
+    );
+}
+
+#[test]
+fn d3sb() {
+    generate_test(
+        "d3sb.abf", 
+        "d3sb.cpp", 
+        true, 
+        false
     );
 }
 

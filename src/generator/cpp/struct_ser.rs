@@ -12,6 +12,7 @@ pub fn generate_struct_serializer(m: &StructMemory, writer: &mut Writer) {
     }
     generate_size(m, writer);
     generate_serialize(m, writer);
+    generate_serialize_into_vector(writer);
     generate_init(m, writer);
     writer.private();
     for i in 0..m.fields.len() {
@@ -82,7 +83,6 @@ fn generate_size(m: &StructMemory, writer: &mut Writer) {
 fn generate_serialize(m: &StructMemory, writer: &mut Writer) {
     writer.write_with_offset("uint32_t serialize(uint8_t *dest)");
     writer.scope_in();
-    writer.write_line("uint32_t result(0);");
     writer.write_line("uint32_t offset = 0;");
     for sm in &m.fields {
         writer.write_line(&format!("offset += {}_.serialize(dest + offset);", sm.as_ref().variable()));

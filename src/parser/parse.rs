@@ -249,22 +249,23 @@ impl<TData, TParser: Parser + ParserData<TData>> Parser for Repeat<TData, TParse
 impl<'b, TData, TParser: Parser + ParserData<TData>> Parser for Separated<'b, TData, TParser> {
     fn parse<'a>(&mut self, text: &CodeView) -> Result<CodeView, Option<ParseError>> {
         let mut count = 0;
-        let res = self.parser.parse(text)?;
-        let data = self
-            .parser
-            .data()
-            .ok_or(ParseError::RetrieveDataFailed(text.offset(0)))?;
-        count += res.view().len();
-        self.data.push(data);
-        while let Ok(res) = self.separator.parse(&text.offset(count)) {
-            count += res.view().len();
-            let res = self.parser.parse(&text.offset(count))?;
+        if let Ok(res) = self.parser.parse(text) {
             let data = self
                 .parser
                 .data()
                 .ok_or(ParseError::RetrieveDataFailed(text.offset(0)))?;
-            self.data.push(data);
             count += res.view().len();
+            self.data.push(data);
+            while let Ok(res) = self.separator.parse(&text.offset(count)) {
+                count += res.view().len();
+                let res = self.parser.parse(&text.offset(count))?;
+                let data = self
+                    .parser
+                    .data()
+                    .ok_or(ParseError::RetrieveDataFailed(text.offset(0)))?;
+                self.data.push(data);
+                count += res.view().len();
+            }
         }
         Ok(text.offset(count))
     }
@@ -1031,7 +1032,7 @@ mod test {
     #[test]
     fn view_with_enum_constants() {
         let mut parser = View::default();
-        let res = parser.parse(&CodeView::from(
+    let res = parser.parse(&CodeView::from(
             "view AnView {
             u8 = AnEnum::U8, 
             u16 = AnEnum::U16

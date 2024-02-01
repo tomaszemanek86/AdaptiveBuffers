@@ -215,7 +215,7 @@ fn interpet_memory(content: String) -> Result<MemoryImage, InterpretError> {
     let tokens = parser::parse(content)
         .or_else(|e| -> Result<Vec<parser::SyntaxToken>, String> {
             log::error!("parse error: {}", e.to_string());
-            exit(1);
+            Err(e.to_string())
         })
         .unwrap();
     interpret::interpret(tokens)
@@ -265,11 +265,11 @@ fn cpp_ptr_size() -> usize {
 }
 
 fn main() {
-    simple_logger::SimpleLogger::new().init().unwrap();
     let args = Args::parse();
-    simple_logger::SimpleLogger::new()
-        .without_timestamps()
-        .init()
+    let logger = simple_logger::SimpleLogger::new()
+        .without_timestamps();
+    log::set_max_level(logger.max_level());
+    logger.init()
         .unwrap();
     log::info!("Protofile: {}", &args.protofile);
     let language = Language::from(args.language.clone());

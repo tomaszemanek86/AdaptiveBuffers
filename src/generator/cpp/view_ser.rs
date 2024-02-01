@@ -9,6 +9,7 @@ pub fn generate_view_serializer(m: &ViewMemory, writer: &mut Writer) {
         generate_with_method(m, i, writer);
     }
     generate_serialize(m, writer);
+    generate_serialize_into_vector(writer);
     generate_size(m, writer);
     generate_init(writer);
     generate_set_typypeid_serializer(m, writer);
