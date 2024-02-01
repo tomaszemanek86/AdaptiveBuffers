@@ -140,4 +140,14 @@ fn struct_with_size_view() {
     );
 }
 
+#[test]
+fn d3sb() {
+    generate_test(
+        "d3sb.abf", 
+        "d3sb.cpp", 
+        true, 
+        true
+    );
+}
+
 
