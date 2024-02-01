@@ -85,6 +85,9 @@ fn generate_serialize(m: &StructMemory, writer: &mut Writer) {
     writer.scope_in();
     writer.write_line("uint32_t offset = 0;");
     for sm in &m.fields {
+        if let Some(smr) = sm.get_struct_member_size_reference() {
+            writer.write_line(&format!("{}_.set_data({}_.size());", smr.origin.name, smr.member.name));
+        }
         writer.write_line(&format!("offset += {}_.serialize(dest + offset);", sm.as_ref().variable()));
     }
     writer.write_line("return offset;");

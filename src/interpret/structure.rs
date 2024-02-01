@@ -73,6 +73,11 @@ impl Struct {
                         } else {
                             return Err(InterpretError::UnknownStructMemberReference(mr.member_name.code_view.clone()));
                         }
+                    },
+                    StructMemberConstant::Size(mr) => {
+                        if self.get_member_index_by_name(&mr.member_name.data).is_none() {
+                            return Err(InterpretError::UnknownStructMemberReference(mr.member_name.code_view.clone()));
+                        }
                     }
                 }
             }

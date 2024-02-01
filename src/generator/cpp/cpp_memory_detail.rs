@@ -193,7 +193,7 @@ impl CppMemoryDetail for NativeType {
             NativeType::Unknown => panic!("unknown type"),
             NativeType::ViewKeyReference(m) => m.native_key.name(),
             NativeType::ArrayDimensionReference(r) => r.origin.as_ref().name(),
-            NativeType::StructMemberSize(n, m) => n.name(),
+            NativeType::StructMemberSize(m) => m.origin.name(),
         }
     }
     fn user_value_serializable(&self) -> bool {
@@ -206,7 +206,7 @@ impl CppMemoryDetail for NativeType {
             NativeType::ConstU24(_) => false,
             NativeType::ConstU32(_) => false,
             NativeType::ConstU64(_) => false,
-            NativeType::StructMemberSize(_, _) => false,
+            NativeType::StructMemberSize(_) => false,
             _ => true
         }
     }
@@ -233,7 +233,7 @@ impl CppMemoryDetail for NativeType {
             NativeType::Unknown => panic!("unknown type"),
             NativeType::ViewKeyReference(m) => format!("abf::ViewKeySerializer<{}, {}>", m.native_key.native_typename(), m.native_key.bytes().unwrap()),
             NativeType::ArrayDimensionReference(r) => format!("abf::LazySerializer<{}>", r.origin.as_ref().serializer_typename()),
-            NativeType::StructMemberSize(n, m) => format!("abf::LazySerializer<{}>", n.serializer_typename()),
+            NativeType::StructMemberSize(m) => format!("abf::LazySerializer<{}>", m.native.serializer_typename()),
         }
     }
     fn deserializer_typename(&self) -> String {
@@ -256,7 +256,7 @@ impl CppMemoryDetail for NativeType {
             NativeType::Unknown => panic!("unknown type"),
             NativeType::ViewKeyReference(m) => m.native_key.deserializer_typename(),
             NativeType::ArrayDimensionReference(r) => r.origin.deserializer_typename(),
-            NativeType::StructMemberSize(n, m) => n.deserializer_typename(),
+            NativeType::StructMemberSize(m) => m.native.deserializer_typename(),
         }
     }
     fn native_typename(&self) -> String {
@@ -279,7 +279,7 @@ impl CppMemoryDetail for NativeType {
             NativeType::Unknown => panic!("unknown type"),
             NativeType::ViewKeyReference(m) => m.native_key.native_typename(),
             NativeType::ArrayDimensionReference(r) => r.origin.native_typename(),
-            NativeType::StructMemberSize(n, m) => n.native_typename(),
+            NativeType::StructMemberSize(m) => m.native.native_typename(),
         }
     }
     fn bytes(&self) -> Option<u32> {
@@ -302,7 +302,7 @@ impl CppMemoryDetail for NativeType {
             NativeType::Unknown => panic!("unknown type"),
             NativeType::ViewKeyReference(m) => m.native_key.bytes(),
             NativeType::ArrayDimensionReference(r) => r.origin.bytes(),
-            NativeType::StructMemberSize(n, m) => n.bytes(),
+            NativeType::StructMemberSize(m) => m.native.bytes(),
         }
     }
     fn default_constructible_deserializer(&self) -> bool {

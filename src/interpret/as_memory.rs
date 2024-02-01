@@ -54,12 +54,23 @@ impl AsMemory for Struct {
                     },
                     StructMemberConstant::ArrayDimension(mr) => {
                         let index = self.get_member_index_by_name(&mr.member_name.data).unwrap();
-                        let origin = Rc::new(self.members[i].typ.as_memory(others)?.memory.as_native().unwrap().clone());
+                        let native = Rc::new(self.members[i].typ.as_memory(others)?.memory.as_native().unwrap().clone());
                         *f.memory.borrow_mut() = MemoryType::Native(NativeType::ArrayDimensionReference(
                                 ArrayDimensionReference {
-                                    origin: origin,
+                                    origin: native,
                                     size: f.clone(),
                                     array: structure.borrow().fields[index].clone()
+                                }
+                            )).non_array_memory();
+                    },
+                    StructMemberConstant::Size(mr) => {
+                        let index = self.get_member_index_by_name(&mr.member_name.data).unwrap();
+                        let native = Rc::new(self.members[i].typ.as_memory(others)?.memory.as_native().unwrap().clone());
+                        *f.memory.borrow_mut() = MemoryType::Native(NativeType::StructMemberSize(
+                                StructMemberSizeReference {
+                                    native: native,
+                                    origin: f.clone(),
+                                    member: structure.borrow().fields[index].clone()
                                 }
                             )).non_array_memory();
                     }

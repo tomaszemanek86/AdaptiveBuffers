@@ -75,7 +75,8 @@ pub struct View {
 pub enum StructMemberConstant {
     ViewReferenceKey(parser::MemberReference),
     ArrayDimension(parser::MemberReference),
-    Usize(usize)
+    Usize(usize),
+    Size(parser::MemberReference),
 }
 
 #[derive(Clone)]

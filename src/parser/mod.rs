@@ -102,7 +102,8 @@ pub enum StructMemberConstant {
     No,
     ViewMemberKey(MemberReference),
     ArrayDimension(MemberReference),
-    Usize(usize)
+    Usize(usize),
+    Size(MemberReference),
 }
 
 #[derive(Debug, Default, Clone)]

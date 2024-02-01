@@ -47,6 +47,9 @@ impl TypeVariant {
                                     parser::StructMemberConstant::ArrayDimension(mr) => {
                                         Some(StructMemberConstant::ArrayDimension(mr.clone()))
                                     }
+                                    parser::StructMemberConstant::Size(mr) => {
+                                        Some(StructMemberConstant::Size(mr.clone()))
+                                    }
                             },
                         };
                     })

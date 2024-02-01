@@ -131,6 +131,13 @@ pub struct ViewKeyReference {
     view: Rc<StructMemberMemory>
 }
 
+#[derive(Debug, Clone)]
+pub struct StructMemberSizeReference {
+    native: Rc<NativeType>,
+    origin: Rc<StructMemberMemory>,
+    member: Rc<StructMemberMemory>
+}
+
 #[derive(Debug, Clone, variation::Variation)]
 pub enum NativeType {
     Bool,
@@ -151,7 +158,7 @@ pub enum NativeType {
     Unknown,
     ViewKeyReference(ViewKeyReference),
     ArrayDimensionReference(ArrayDimensionReference),
-    StructMemberSize(Rc<NativeType>, Rc<StructMemberMemory>),
+    StructMemberSize(StructMemberSizeReference),
 }
 
 trait ExactSize {

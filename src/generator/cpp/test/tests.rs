@@ -131,6 +131,16 @@ fn empty_struct() {
 }
 
 #[test]
+fn struct_with_size_view() {
+    generate_test(
+        "struct_with_size_reference.abf", 
+        "struct_with_size_reference.cpp", 
+        true, 
+        true
+    );
+}
+
+#[test]
 fn d3sb() {
     generate_test(
         "d3sb.abf", 

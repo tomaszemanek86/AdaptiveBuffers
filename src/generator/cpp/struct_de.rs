@@ -44,7 +44,8 @@ fn generate_ctor(m: &StructMemory, writer: &mut Writer) {
     let init = m.fields
         .iter()
         //.filter(|f| f.default_constructible_deserializer())
-        .map(|f| format!("{}_()", f.name))
+        .map(|f| format!("{}_(nullptr)", f.name)
+        )
         .collect::<Vec<String>>()
         .join(", ");
     if !init.is_empty() {

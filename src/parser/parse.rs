@@ -457,7 +457,8 @@ impl<'b> Parser for StructMemberConstant {
         let mut value = Value::<usize>::default();
         let mut view_reference = MemberReference::new("key");
         let mut array_dimension = MemberReference::new("dimension");
-        let mut or_posibilities: [&mut dyn Parser; 3] = [&mut view_reference, &mut array_dimension, &mut value];
+        let mut size = MemberReference::new("size");
+        let mut or_posibilities: [&mut dyn Parser; 4] = [&mut view_reference, &mut array_dimension, &mut value, &mut size];
         let mut or = Or::new(
             &mut or_posibilities,
             "View reference or size of struct member",
@@ -467,6 +468,7 @@ impl<'b> Parser for StructMemberConstant {
             0 => *self = StructMemberConstant::ViewMemberKey(view_reference),
             1 => *self = StructMemberConstant::ArrayDimension(array_dimension),
             2 => *self = StructMemberConstant::Usize(value.value.unwrap()),
+            3 => *self = StructMemberConstant::Size(size),
             _ => panic!("Unexpected index"),
         }
         Ok(res)
