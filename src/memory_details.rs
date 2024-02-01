@@ -156,6 +156,7 @@ impl MemoryDetails for NativeType {
             Self::Unknown => None,
             Self::ViewKeyReference(mr) => mr.native_key.exact_size(),
             Self::ArrayDimensionReference(mr) => mr.origin.exact_size(),
+            Self::StructMemberSize(n, m) => n.exact_size(),
         }
     }
 

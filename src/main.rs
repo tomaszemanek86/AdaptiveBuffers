@@ -151,6 +151,7 @@ pub enum NativeType {
     Unknown,
     ViewKeyReference(ViewKeyReference),
     ArrayDimensionReference(ArrayDimensionReference),
+    StructMemberSize(Rc<NativeType>, Rc<StructMemberMemory>),
 }
 
 trait ExactSize {

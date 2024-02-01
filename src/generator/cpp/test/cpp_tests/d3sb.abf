@@ -589,5 +589,6 @@ view PwrSrc_MessageView {
 
 struct PwrSrc_Message {
     command: u8 = message.key,
+    message_length: u8,
     message: PwrSrc_MessageView
 }

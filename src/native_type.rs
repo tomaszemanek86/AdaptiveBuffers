@@ -47,6 +47,7 @@ impl NativeType {
             Self::Unknown => panic!("cannot get bytes from unknow native type"),
             Self::ViewKeyReference(mr) => mr.key.memory.borrow().memory.as_native().unwrap().size(),
             Self::ArrayDimensionReference(mr) => mr.size.memory.borrow().memory.as_native().unwrap().size(),
+            Self::StructMemberSize(n, _m_) => n.size(),
         }
     }
 
