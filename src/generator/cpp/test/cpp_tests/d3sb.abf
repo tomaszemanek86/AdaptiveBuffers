@@ -491,7 +491,6 @@ struct PwrSrc_GetStatisticsLength {
     length: u64
 }
 
-# struct PwrSrc_SetStatisticsPtrS - is empty
 struct PwrSrc_SetStatisticsPtrS {}
 
 struct PwrSrc_GetHistory {
@@ -503,7 +502,7 @@ struct PwrSrc_GetHistoryLength {
     length: u64
 }
 
-# struct PwrSrc_SetHistoryPtrS - is empty
+struct PwrSrc_SetHistoryPtrS {}
 
 enum PwrSrcMemoryType : u8 {
     FirmwareInfoSpace = 1,
@@ -576,10 +575,10 @@ view PwrSrc_MessageView {
     PwrSrc_GetChargerDiagnostics = PwrSrcMsgType::GetChargerDiagnostics,
     PwrSrc_GetStatistics = PwrSrcMsgType::GetStatistics,
     PwrSrc_GetStatisticsLength = PwrSrcMsgType::GetStatisticsLength,
-    # PwrSrc_SetStatisticsPtrS = PwrSrcMsgType::SetStatisticsPtrS, -- TODO: support empty struct
+    PwrSrc_SetStatisticsPtrS = PwrSrcMsgType::SetStatisticsPtrS,
     PwrSrc_GetHistory = PwrSrcMsgType::GetHistory,
     PwrSrc_GetHistoryLength = PwrSrcMsgType::GetHistoryLenngth,
-    # PwrSrc_SetHistoryPtrS = PwrSrcMsgType::SetHistoryPtrS,
+    PwrSrc_SetHistoryPtrS = PwrSrcMsgType::SetHistoryPtrS,
     PwrSrc_MemoryClear = PwrSrcMsgType::MemoryClear,
     PwrSrc_NewFirmwareData = PwrSrcMsgType::NewFirmwareData,
     PwrSrc_ConfirmFWBlockReception = PwrSrcMsgType::ConfirmFwBlockReception,
