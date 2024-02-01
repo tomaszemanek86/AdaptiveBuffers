@@ -104,6 +104,7 @@ pub enum StructMemberConstant {
     ArrayDimension(MemberReference),
     Usize(usize),
     Size(MemberReference),
+    EnumMemberValue(EnumMemberRef),
 }
 
 #[derive(Debug, Default, Clone)]

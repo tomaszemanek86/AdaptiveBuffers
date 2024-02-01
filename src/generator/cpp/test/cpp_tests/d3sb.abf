@@ -1,1 +1,634 @@
 endian little
+
+enum MessageType : u16 {
+    CRT_State       = h0100,
+    CRT_DataFrom    = h0102,
+    CRT_DataTo      = h0103,
+
+    Output_DigIn    = h1000,
+    Output_DigOut   = h1020,
+    Output_Door     = h1021,
+    Output_AnIn     = h1040,
+    Output_AnOut    = h1060,
+
+    KP_ApuKpuState  = h10,
+    KP_Datetime     = h12
+}
+
+###################################################
+# INPUT, OUTPUT - State of digital input
+###################################################
+
+struct ApKp_DigIn {
+    hwid: u32,
+    input_number: u8
+}
+
+enum DigInState : u8 {
+    S1 = h1,
+    S2 = h2,
+    S3 = h4,
+    S4 = h8
+}
+
+struct KpAp_DigIn {
+    hwid: u32,
+    input_number: u8,
+    old_state: u8,
+    new_state: u8
+}
+
+struct ApKp_DigOut {
+    hwid: u32,
+    output_nr: u8,
+    output_state: u8
+}
+
+###################################################
+# INPUT, OUTPUT - State of digital output
+###################################################
+
+enum DigOutState : u8 {
+    NotActive = b0,
+    Blinking = b101,
+    TimeControlled = b1100,
+    PermanentlyActive = b1111
+}
+
+struct KpAp_DigOut {
+    hwid: u32,
+    output_nr: u8,
+    old_state: u8,
+    new_state: u8
+}
+
+###################################################
+# INPUT, OUTPUT - DOOR
+###################################################
+
+enum DoorState : u8 {
+    RelayInactive = h0,
+    RelayActive = h1,
+    TimeControlled = h2,
+    IntervalControlled = h4
+}
+
+struct ApKp_DoorState {
+    hwid: u32,
+    door_nr: u8,
+    state: u8
+}
+
+struct KpAp_DoorState {
+    hwid: u32,
+    door_nr: u8,
+    old_state: u8,
+    new_state: u8
+}
+
+###################################################
+# MODULES - Data from ADN module
+###################################################
+
+struct ApKp_ModuleDataFrom {
+    hwid: u32,
+    data: [u8]
+}
+
+struct KpAp_ModuleDataTo {
+    hwid: u32,
+    data: [u8]
+}
+
+###################################################
+# MODULES - ADN Module state
+###################################################
+
+enum ModuleState : u16 {
+    FaultAP = B0,
+    FaultVoltage = B1,
+    PwrCommFault = B6,
+    Tamper = B14,
+    Reset = B15
+}
+
+enum ModuleCommState : u16 {
+    LedOn = B6,
+    UpdateLedSvc = B7,
+    ThreeTimeNoResponse = B11,
+    EraseExtMem = B12,
+    ProgExtMem = B13,
+    FirmwareUpgrade = B14,
+    NoComm = B15
+}
+
+struct ApKp_AdnModuleState {
+    hwid: u32
+}
+
+struct KpAp_AdnModuleState {
+    hwid: u32,
+    module_state: u16,
+    comm_state: u16
+}
+
+###################################################
+# MODULES - Power source state
+###################################################
+
+enum PwrState1 : u8 {
+    RSer = B0,
+    BatFault = B1,
+
+
+    BatShorted = B4,
+    BatMissing = B5,
+    BatTempHigh = B6,
+    OverTemperature = B7
+}
+
+enum PwrState2 : u8 {
+    IInHigh = B0,
+    IBatLow = B1,
+    VBatLow = B2,
+    VBatHigh = B3,
+    VSysLow = B4,
+    VSysHigh = B5,
+    VInLow = B6,
+    VInHigh = B7
+}
+
+enum PwrState3 : u8 {
+    VSupLow = B0,
+    VSupHigh = B1,
+    ReducerEn = B2,
+
+
+    OutHc = B5
+}
+
+struct ApKp_PwrState {
+    hwid: u32,
+    state1: u8,
+    state2: u8,
+    state3: u8
+}
+
+###################################################
+# MODULES - Power source bind table
+###################################################
+
+ # TODO: dont fully understand to d3sb protocol
+
+struct PrwSrcBound {
+    hwid_module: u32,
+    hwid_pwrsrc: u32
+}
+
+view PrwSrcBoundView {
+    [PrwSrcBound],
+    u32 # hwid
+    # TODO: make no data e.g. 'empty'
+}
+
+struct ApKp_PrwSrcBound {
+    bound_table: PrwSrcBoundView
+}
+
+###################################################
+# COMMUNICATION PROCESSOR - APU and KPU state
+###################################################
+
+struct ApKp_ApKpState {
+    hwid: u32
+}
+
+enum ApKpState1 : u8 {
+    McuFwOutOfRange = B3,
+    CannotSaveToSFlash = B4,
+    CannotSaveToHeap = B5,
+    SavedToSFlash = B6,
+    SFlashPrograming = B7
+}
+
+enum ApKpState2 : u8 {
+    StateQueueErased = B5,
+    TooLongMessage = B4,
+    WrongCrc = B2
+}
+
+enum ApKpState3 : u8 {
+    KpuReseted = B7,
+    KpuWDActivatedLedFaultOff = B6
+}
+
+enum ApKpState4 : u8 {
+    Tamper1 = B1,
+    Tamper2 = B0
+}
+
+struct KpAp_ApKpState {
+    hwid: u32,
+    state1: u8,
+    state2: u8,
+    state3: u8,
+    state4: u8
+}
+
+###################################################
+# COMMUNICATION PROCESSOR - Date and time
+###################################################
+
+struct ApKp_Datetime {
+    year: u16,
+    month: u8,
+    day: u8,
+    wday: u8,
+    hour: u8,
+    minute: u8,
+    second: u8
+}
+
+struct KpAp_Datetime {
+    year: u16,
+    month: u8,
+    day: u8,
+    wday: u8,
+    hour: u8,
+    minute: u8,
+    second: u8
+}
+
+
+###################################################
+# POWER SOURCE - I2C messages
+###################################################
+
+enum PwrSrcMsgType : u8 {
+    GetType                 = h00,
+    GetStatus               = h01,
+    GetSN                   = h02,
+    GetAnalog               = h03,
+    GetFWVersion            = h04,
+    GetClock                = h05,
+    SetClock                = h06,
+    EnableCharger           = h07,
+    EnableOut               = h08,
+    EnableOutHC             = h09,
+    EnableReducer           = h0A,
+    GetCapacity             = h0B,
+    SetCapacity             = h0C,
+    GetSoC                  = h0D,
+    GetSoH1                 = h0E,
+    GetSoH2                 = h0F,
+    GetMaxChargeCurrent     = h10,
+    SetMaxChargeCurrent     = h11,
+    GetMaxOutCurrent        = h12,
+    GetChargerDiagnostics   = h13,
+    GetStatistics           = hF0,
+    GetStatisticsLength     = hF1,
+    SetStatisticsPtrS       = hF2,
+    GetHistory              = hF3,
+    GetHistoryLenngth       = hF4,
+    SetHistoryPtrS          = hF5,
+    MemoryClear             = hDE,
+    NewFirmwareData        = hE0,
+    ConfirmFwBlockReception = hE1,
+    ProgramMCU              = hE2,
+    RevertToPreviousFw      = hE3,
+    SaveActualFw            = hE4
+}
+
+# GetType
+
+struct PwrSrc_Write_GetType {
+    command: u8 = PwrSrcMsgType::GetType,
+    size: u8 = 7
+}
+
+struct PwrSrc_Read_GetType {
+    typ: u8,
+    hw_rev: u8,
+    fw_version: u16,
+    day: u8,
+    month: u8,
+    year: u8
+}
+
+# GetStatus
+
+enum PwrSrcStatus0 : u8 {
+    Overtemperature     = b00000001,
+    BatTempHigh         = b00000010,
+    BatMissing          = b00000100,
+    BatShorted          = b00001000,
+    ChargerState        = b00110000,
+    BatState            = b01000000,
+    Rser                = b10000000
+}
+
+enum PwrSrcStatus1 : u8 {
+    VinHigh     = b00000001,
+    VinLow      = b00000010,
+    VsysHigh    = b00000100,
+    VsysLow     = b00001000,
+    VbatHigh    = b00010000,
+    VbatLow     = b00100000,
+    IbatLow     = b01000000,
+    IinHigh     = b10000000
+}
+
+enum PwrSrcStatus2 : u8 {
+    CCUState    = b00000011,
+    OutHc       = b00000100,
+    OutState    = b00011000,
+    ReducerEn   = b00100000,
+    VSupHigh    = b01000000,
+    VsupLow     = b10000000
+}
+
+enum PsuState : u8 {
+    Disabled        = b00,
+    Ok              = b01,
+    Down            = b10,
+    NearOverload    = b11 # load over 70% of nominal fuse current
+}
+
+enum ChargerState : u8 {
+    Suspended           = b00,
+    ConstCurrentMode    = b01,
+    ConstVoltageMode    = b10,
+    MaintanenceMode     = b11
+}
+
+struct PwrSrc_GetStatus {
+    status0: u8,
+    status1: u8,
+    status2: u8
+}
+
+# Get S/N
+
+struct PwrSrc_SN {
+    serial_number: u64
+}
+
+struct PwrSrc_GetAnalog {
+    v_sup : u16,
+    v_in : u16,
+    i_in : u16,
+    v_sys : u16,
+    t_chip : u16, # [s]
+    v_bat : u16,
+    i_bat : u16, # [s]
+    r_bat : u16,
+    t_bat : u16, # [s]
+    v_out : u16,
+    i_out : u16,
+    v_ccu : u16,
+    i_ccu : u16
+}
+
+struct PwrSrc_GetFWVersion {
+    version: u16,
+    day: u8,
+    month: u8,
+    year: u8
+}
+
+struct PwrSrc_GetClock {
+    day: u8,
+    month: u8,
+    year: u8,
+    wday: u8,
+    hour: u8,
+    minute: u8,
+    second: u8
+}
+
+struct PwrSrc_SetClock {
+    day: u8,
+    month: u8,
+    year: u8,
+    wday: u8,
+    hour: u8,
+    minute: u8,
+    second: u8
+}
+
+struct PwrSrc_EnableCharger {
+    enable: u8
+}
+
+struct PwrSrc_EnableOut {
+    enable: u8
+}
+
+struct PwrSrc_EnableOutHC {
+    enable: u8
+}
+
+struct PwrSrc_EnableReducer {
+    enable: u8
+}
+
+struct PwrSrc_GetCapacity {
+    capacity: u8
+}
+
+struct PwrSrc_SetCapacity {
+    capacity: u8
+}
+
+struct PwrSrc_GetSoC {
+    soc: u8
+}
+
+struct PwrSrc_GetSoH1 {
+    soh: u8
+}
+
+struct PwrSrc_GetSoH2 {
+    soh: u8
+}
+
+struct PwrSrc_GetMaxChargeCurrent {
+    max_charge_current: u16
+}
+
+struct PwrSrc_SetMaxChargeCurrent {
+    max_charge_current: u16
+}
+
+struct PwrSrc_GetMaxOutCurrent {
+    max_out_current: u16
+}
+
+enum PwrSrcChargerDiagnostics : u16 {
+    intvcc_gt2p8v       = b0000000000000001,
+    intvcc_gt_4p3v      = b0000000000000010,
+    vin_gt_vbat         = b0000000000000100,
+    vin_ovlo            = b0000000000001000,
+    thermal_shutdown    = b0000000000010000,
+    no_rt               = b0000000000100000,
+    ok_to_charge        = b0000000001000000,
+    lead_acid_temp_comp = b0000000010000000,
+    cell_count_error    = b0000000100000000,
+    drvcc_good          = b0000001000000000,
+    equalize_req        = b0000010000000000,
+    mppt_en_pin         = b0000100000000000,
+    unused              = b0001000000000000,
+    charger_enabled     = b0010000000000000,
+    vin_uvcl_active     = b0100000000000000,
+    iin_limit_active    = b1000000000000000
+}
+
+struct PwrSrc_GetChargerDiagnostics {
+    diagostics: u16
+}
+
+struct PwrSrc_GetStatistics {
+    length: u16 = data.dimension,
+    data: [u8]
+}
+
+struct PwrSrc_GetStatisticsLength {
+    length: u64
+}
+
+struct PwrSrc_SetStatisticsPtrS {}
+
+struct PwrSrc_GetHistory {
+    length: u16 = data.dimension,
+    data: [u8]
+}
+
+struct PwrSrc_GetHistoryLength {
+    length: u64
+}
+
+struct PwrSrc_SetHistoryPtrS {}
+
+enum PwrSrcMemoryType : u8 {
+    FirmwareInfoSpace = 1,
+    NewFirmwareSpace = 2,
+    OldFirmwareSpace = 3,
+    AllFirmwareSpace = 4,
+    StatisticsSpace = 5,
+    EventSpace = 6,
+    StatisticsAndEventSpace = 7,
+    ChipErase = 8
+}
+
+struct PwrSrc_MemoryClear {
+    type: u8 # TODO: make appropriate enum
+}
+
+struct PwrSrc_NewFirmwareData {
+    byte0 : u8 = hE0,
+    address: u24,
+    length: u16 = data.dimension,
+    data: [u8],
+    crc: u16
+}
+
+struct PwrSrc_ConfirmFWBlockReception {
+    status : u8,
+    address: u24,
+    length: u16,
+    corrupted_sector_addr: u64
+}
+
+struct PwrSrc_ProgramMCU {
+    byte0 : u8 = hE0,
+    day: u8,
+    month: u8,
+    year: u8,
+    fw_version: u16,
+    crc: u16,
+    nr_segments: u16
+}
+
+struct PwrSrc_RevertToPreviousFW {
+    byte0 : u8 = hE0
+}
+
+struct PwrSrc_SaveActualFW {
+    byte0 : u8 = hE0
+}
+
+view PwrSrc_Write_MessageView {
+    PwrSrc_Write_GetType = PwrSrcMsgType::GetType
+    #PwrSrc_GetStatus = PwrSrcMsgType::GetStatus,
+    #PwrSrc_SN = PwrSrcMsgType::GetSN,
+    #PwrSrc_GetAnalog = PwrSrcMsgType::GetAnalog,
+    #PwrSrc_GetFWVersion = PwrSrcMsgType::GetFWVersion,
+    #PwrSrc_GetClock = PwrSrcMsgType::GetClock,
+    #PwrSrc_SetClock = PwrSrcMsgType::SetClock,
+    #PwrSrc_EnableCharger = PwrSrcMsgType::EnableCharger,
+    #PwrSrc_EnableOut = PwrSrcMsgType::EnableOut,
+    #PwrSrc_EnableOutHC = PwrSrcMsgType::EnableOutHC,
+    #PwrSrc_EnableReducer = PwrSrcMsgType::EnableReducer,
+    #PwrSrc_GetCapacity = PwrSrcMsgType::GetCapacity,
+    #PwrSrc_SetCapacity = PwrSrcMsgType::SetCapacity,
+    #PwrSrc_GetSoC = PwrSrcMsgType::GetSoC,
+    #PwrSrc_GetSoH1 = PwrSrcMsgType::GetSoH1,
+    #PwrSrc_GetSoH2 = PwrSrcMsgType::GetSoH2,
+    #PwrSrc_GetMaxChargeCurrent = PwrSrcMsgType::GetMaxChargeCurrent,
+    #PwrSrc_SetMaxChargeCurrent = PwrSrcMsgType::SetMaxChargeCurrent,
+    #PwrSrc_GetMaxOutCurrent = PwrSrcMsgType::GetMaxOutCurrent,
+    #PwrSrc_GetChargerDiagnostics = PwrSrcMsgType::GetChargerDiagnostics,
+    #PwrSrc_GetStatistics = PwrSrcMsgType::GetStatistics,
+    #PwrSrc_GetStatisticsLength = PwrSrcMsgType::GetStatisticsLength,
+    #PwrSrc_SetStatisticsPtrS = PwrSrcMsgType::SetStatisticsPtrS,
+    #PwrSrc_GetHistory = PwrSrcMsgType::GetHistory,
+    #PwrSrc_GetHistoryLength = PwrSrcMsgType::GetHistoryLenngth,
+    #PwrSrc_SetHistoryPtrS = PwrSrcMsgType::SetHistoryPtrS,
+    #PwrSrc_MemoryClear = PwrSrcMsgType::MemoryClear,
+    #PwrSrc_NewFirmwareData = PwrSrcMsgType::NewFirmwareData,
+    #PwrSrc_ConfirmFWBlockReception = PwrSrcMsgType::ConfirmFwBlockReception,
+    #PwrSrc_ProgramMCU = PwrSrcMsgType::ProgramMCU,
+    #PwrSrc_RevertToPreviousFW = PwrSrcMsgType::RevertToPreviousFw,
+    #PwrSrc_SaveActualFW = PwrSrcMsgType::SaveActualFw
+}
+
+view PwrSrc_MessageView {
+    PwrSrc_Read_GetType = PwrSrcMsgType::GetType
+    #PwrSrc_GetStatus = PwrSrcMsgType::GetStatus,
+    #PwrSrc_SN = PwrSrcMsgType::GetSN,
+    #PwrSrc_GetAnalog = PwrSrcMsgType::GetAnalog,
+    #PwrSrc_GetFWVersion = PwrSrcMsgType::GetFWVersion,
+    #PwrSrc_GetClock = PwrSrcMsgType::GetClock,
+    #PwrSrc_SetClock = PwrSrcMsgType::SetClock,
+    #PwrSrc_EnableCharger = PwrSrcMsgType::EnableCharger,
+    #PwrSrc_EnableOut = PwrSrcMsgType::EnableOut,
+    #PwrSrc_EnableOutHC = PwrSrcMsgType::EnableOutHC,
+    #PwrSrc_EnableReducer = PwrSrcMsgType::EnableReducer,
+    #PwrSrc_GetCapacity = PwrSrcMsgType::GetCapacity,
+    #PwrSrc_SetCapacity = PwrSrcMsgType::SetCapacity,
+    #PwrSrc_GetSoC = PwrSrcMsgType::GetSoC,
+    #PwrSrc_GetSoH1 = PwrSrcMsgType::GetSoH1,
+    #PwrSrc_GetSoH2 = PwrSrcMsgType::GetSoH2,
+    #PwrSrc_GetMaxChargeCurrent = PwrSrcMsgType::GetMaxChargeCurrent,
+    #PwrSrc_SetMaxChargeCurrent = PwrSrcMsgType::SetMaxChargeCurrent,
+    #PwrSrc_GetMaxOutCurrent = PwrSrcMsgType::GetMaxOutCurrent,
+    #PwrSrc_GetChargerDiagnostics = PwrSrcMsgType::GetChargerDiagnostics,
+    #PwrSrc_GetStatistics = PwrSrcMsgType::GetStatistics,
+    #PwrSrc_GetStatisticsLength = PwrSrcMsgType::GetStatisticsLength,
+    #PwrSrc_SetStatisticsPtrS = PwrSrcMsgType::SetStatisticsPtrS,
+    #PwrSrc_GetHistory = PwrSrcMsgType::GetHistory,
+    #PwrSrc_GetHistoryLength = PwrSrcMsgType::GetHistoryLenngth,
+    #PwrSrc_SetHistoryPtrS = PwrSrcMsgType::SetHistoryPtrS,
+    #PwrSrc_MemoryClear = PwrSrcMsgType::MemoryClear,
+    #PwrSrc_NewFirmwareData = PwrSrcMsgType::NewFirmwareData,
+    #PwrSrc_ConfirmFWBlockReception = PwrSrcMsgType::ConfirmFwBlockReception,
+    #PwrSrc_ProgramMCU = PwrSrcMsgType::ProgramMCU,
+    #PwrSrc_RevertToPreviousFW = PwrSrcMsgType::RevertToPreviousFw,
+    #PwrSrc_SaveActualFW = PwrSrcMsgType::SaveActualFw
+}
+
+struct PwrSrc_Read_Message {
+    command: u8 = message.key,
+    message_length: u8,
+    message: PwrSrc_MessageView
+}

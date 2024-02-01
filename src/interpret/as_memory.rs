@@ -73,6 +73,23 @@ impl AsMemory for Struct {
                                     member: structure.borrow().fields[index].clone()
                                 }
                             )).non_array_memory();
+                    },
+                    StructMemberConstant::EnumMemberValue(emv) => {
+                        let value = others
+                                .iter()
+                                .find(|it: &&MemoryDeclaration| it.name == emv.enum_name.data)
+                                .ok_or_else(|| InterpretError::UnknownEnum(emv.enum_name.code_view.clone()))?
+                                .memory.memory
+                                .as_enum().unwrap()
+                                .constants
+                                .iter().find(|it| it.name == emv.enum_member.data)
+                                .ok_or_else(|| InterpretError::UnknownEnumMember(emv.enum_member.code_view.clone()))?
+                                .value;
+                        if let Some(nm) = f.memory.borrow_mut().memory.as_native_mut() {
+                            nm.make_const(value).map_err(|e| InterpretError::GenericError(e))?
+                        } else {
+                            return Err(InterpretError::CannotAsignUsizeCstToNonUnsignedMemory(value))
+                        }
                     }
                 } 
             }

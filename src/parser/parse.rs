@@ -458,7 +458,14 @@ impl<'b> Parser for StructMemberConstant {
         let mut view_reference = MemberReference::new("key");
         let mut array_dimension = MemberReference::new("dimension");
         let mut size = MemberReference::new("size");
-        let mut or_posibilities: [&mut dyn Parser; 4] = [&mut view_reference, &mut array_dimension, &mut value, &mut size];
+        let mut enum_member_ref = EnumMemberRef::default();
+        let mut or_posibilities: [&mut dyn Parser; 5] = [
+            &mut view_reference, 
+            &mut array_dimension, 
+            &mut value, 
+            &mut size,
+            &mut enum_member_ref
+        ];
         let mut or = Or::new(
             &mut or_posibilities,
             "View reference or size of struct member",
@@ -469,6 +476,7 @@ impl<'b> Parser for StructMemberConstant {
             1 => *self = StructMemberConstant::ArrayDimension(array_dimension),
             2 => *self = StructMemberConstant::Usize(value.value.unwrap()),
             3 => *self = StructMemberConstant::Size(size),
+            4 => *self = StructMemberConstant::EnumMemberValue(enum_member_ref),
             _ => panic!("Unexpected index"),
         }
         Ok(res)
