@@ -19,7 +19,7 @@ impl<TData: FromStr + TryFrom<usize> + Debug + Clone> Parser for Value<TData> {
                     .chars()
                     .skip(1)
                     .into_iter()
-                    .take_while(|c| is_a::is_digit(*c) || ('A'..'F').contains(c))
+                    .take_while(|c| is_a::is_digit(*c) || ('A'..'G').contains(c) || ('a'..'g').contains(c))
                     .count();
                 if let Ok(hex) = usize::from_str_radix(&text.rest()[1..(count + 1)], 16) {
                     if let Ok(value) = TData::try_from(hex) {
@@ -96,16 +96,33 @@ impl<'b> Parser for String {
 
 impl Parser for WhiteChars {
     fn parse<'a>(&mut self, text: &CodeView) -> Result<CodeView, Option<ParseError>> {
-        let count = text
-            .rest()
-            .chars()
-            .into_iter()
-            .take_while(|c| is_a::is_white_space(*c))
-            .count();
-        if count >= self.min_count {
-            return Ok(text.offset(count));
+        let mut count = 0;
+        loop {
+            count += text
+                .rest()[count..]
+                .chars()
+                .into_iter()
+                .take_while(|c| is_a::is_white_space(*c))
+                .count();
+            if text.rest().chars().nth(count) == Some('#') {
+                let new_count = text
+                    .rest()[count..]
+                    .chars()
+                    .into_iter()
+                    .take_while(|c| *c != '\n')
+                    .count();
+                self.comments.push(text.rest()[(count + 1)..(count + new_count)].into());
+                count += new_count;
+            } else {
+                if count < self.min_count {
+                    return Err(Some(ParseError::NotAType(text.offset(0))))
+                }
+                return Ok(text.offset(count));
+            }
+            if count < self.min_count {
+                return Err(Some(ParseError::NotAType(text.offset(0))))
+            }
         }
-        Err(Some(ParseError::NotAType(text.offset(0))))
     }
 }
 
@@ -232,22 +249,23 @@ impl<TData, TParser: Parser + ParserData<TData>> Parser for Repeat<TData, TParse
 impl<'b, TData, TParser: Parser + ParserData<TData>> Parser for Separated<'b, TData, TParser> {
     fn parse<'a>(&mut self, text: &CodeView) -> Result<CodeView, Option<ParseError>> {
         let mut count = 0;
-        let res = self.parser.parse(text)?;
-        let data = self
-            .parser
-            .data()
-            .ok_or(ParseError::RetrieveDataFailed(text.offset(0)))?;
-        count += res.view().len();
-        self.data.push(data);
-        while let Ok(res) = self.separator.parse(&text.offset(count)) {
-            count += res.view().len();
-            let res = self.parser.parse(&text.offset(count))?;
+        if let Ok(res) = self.parser.parse(text) {
             let data = self
                 .parser
                 .data()
                 .ok_or(ParseError::RetrieveDataFailed(text.offset(0)))?;
-            self.data.push(data);
             count += res.view().len();
+            self.data.push(data);
+            while let Ok(res) = self.separator.parse(&text.offset(count)) {
+                count += res.view().len();
+                let res = self.parser.parse(&text.offset(count))?;
+                let data = self
+                    .parser
+                    .data()
+                    .ok_or(ParseError::RetrieveDataFailed(text.offset(0)))?;
+                self.data.push(data);
+                count += res.view().len();
+            }
         }
         Ok(text.offset(count))
     }
@@ -383,7 +401,7 @@ impl Parser for TypVariant {
             *self = TypVariant::Unknown(DataView::new(word.data, word.code_view));
             return Ok(res);
         }
-        return Err(Some(ParseError::NotAType(text.offset(0))));
+        Err(Some(ParseError::NotAType(text.offset(0))))
     }
 }
 
@@ -436,9 +454,11 @@ impl<'b> Parser for MemberReference {
 
 impl<'b> Parser for StructMemberConstant {
     fn parse<'a>(&mut self, text: &CodeView) -> Result<CodeView, Option<ParseError>> {
+        let mut value = Value::<usize>::default();
         let mut view_reference = MemberReference::new("key");
         let mut array_dimension = MemberReference::new("dimension");
-        let mut or_posibilities: [&mut dyn Parser; 2] = [&mut view_reference, &mut array_dimension];
+        let mut size = MemberReference::new("size");
+        let mut or_posibilities: [&mut dyn Parser; 4] = [&mut view_reference, &mut array_dimension, &mut value, &mut size];
         let mut or = Or::new(
             &mut or_posibilities,
             "View reference or size of struct member",
@@ -447,6 +467,8 @@ impl<'b> Parser for StructMemberConstant {
         match or.index {
             0 => *self = StructMemberConstant::ViewMemberKey(view_reference),
             1 => *self = StructMemberConstant::ArrayDimension(array_dimension),
+            2 => *self = StructMemberConstant::Usize(value.value.unwrap()),
+            3 => *self = StructMemberConstant::Size(size),
             _ => panic!("Unexpected index"),
         }
         Ok(res)
@@ -757,6 +779,17 @@ mod test {
     }
 
     #[test]
+    fn white_chars_with_comments() {
+        let mut wc_parser = WhiteChars::default();
+        let text = CodeView::from(" \n\t#first comment\n    \n#seccond comment");
+        let res = wc_parser.parse(&text);
+        assert_eq!(res.is_ok(), true);
+        assert_eq!(wc_parser.comments.len(), 2);
+        assert_eq!(wc_parser.comments[0], "first comment");
+        assert_eq!(wc_parser.comments[1], "seccond comment");
+    }
+
+    #[test]
     fn sequence() {
         let mut u8_1 = Value::<u8>::default();
         let mut u8_2 = Value::<u8>::default();
@@ -996,5 +1029,28 @@ mod test {
         assert_eq!(parser.types[0].typ.typ.is_int(), true);
         assert_eq!(parser.types[1].typ.typ.is_int(), true);
         assert_eq!(parser.types[2].typ.typ.is_unknown(), true);
+    }
+
+    #[test]
+    fn view_with_enum_constants() {
+        let mut parser = View::default();
+    let res = parser.parse(&CodeView::from(
+            "view AnView {
+            u8 = AnEnum::U8, 
+            u16 = AnEnum::U16
+        }",
+        ));
+        assert_eq!(res.is_ok(), true);
+        assert_eq!(parser.name, "AnView");
+        assert_eq!(parser.types.len(), 2);
+        assert_eq!(parser.types[0].typ.typ.is_int(), true);
+        assert_eq!(parser.types[0].constant.is_some(), true);
+        assert_eq!(parser.types[0].constant.as_ref().unwrap().is_enum_member_ref(), true);
+        assert_eq!(parser.types[0].constant.as_ref().unwrap().as_enum_member_ref().unwrap().enum_name.data, "AnEnum");
+        assert_eq!(parser.types[0].constant.as_ref().unwrap().as_enum_member_ref().unwrap().enum_member.data, "U8");
+        assert_eq!(parser.types[1].typ.typ.is_int(), true);
+        assert_eq!(parser.types[1].constant.as_ref().unwrap().is_enum_member_ref(), true);
+        assert_eq!(parser.types[1].constant.as_ref().unwrap().as_enum_member_ref().unwrap().enum_name.data, "AnEnum");
+        assert_eq!(parser.types[1].constant.as_ref().unwrap().as_enum_member_ref().unwrap().enum_member.data, "U16");
     }
 }

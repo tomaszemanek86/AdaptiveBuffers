@@ -1,6 +1,8 @@
 #include <utest/utest.h>
 #include "enum1.h"
 
+using namespace enum1;
+
 UTEST_MAIN();
 
 UTEST(enum1, serde) {

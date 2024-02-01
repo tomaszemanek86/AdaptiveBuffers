@@ -31,6 +31,7 @@ impl Struct {
                     ));
                 }
                 match c {
+                    StructMemberConstant::Usize(_value) => continue,
                     StructMemberConstant::ViewReferenceKey(mr) => {
                         if let Some(t) = types.get_type(&mr.member_name.data)? {
                             if let Some(i) = self.get_member_index_by_name(&mr.member_name.data) {
@@ -70,6 +71,11 @@ impl Struct {
                                 return Err(InterpretError::MemberReferenceDoesntPointToArray(mr.member_name.code_view.clone()))
                             }
                         } else {
+                            return Err(InterpretError::UnknownStructMemberReference(mr.member_name.code_view.clone()));
+                        }
+                    },
+                    StructMemberConstant::Size(mr) => {
+                        if self.get_member_index_by_name(&mr.member_name.data).is_none() {
                             return Err(InterpretError::UnknownStructMemberReference(mr.member_name.code_view.clone()));
                         }
                     }

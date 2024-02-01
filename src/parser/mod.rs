@@ -47,6 +47,7 @@ pub struct Value<TData: FromStr + Debug + Clone> {
 #[derive(Default, Clone)]
 struct WhiteChars {
     min_count: usize,
+    comments: Vec<String>
 }
 
 #[derive(Default)]
@@ -100,7 +101,9 @@ pub struct MemberReference {
 pub enum StructMemberConstant {
     No,
     ViewMemberKey(MemberReference),
-    ArrayDimension(MemberReference)
+    ArrayDimension(MemberReference),
+    Usize(usize),
+    Size(MemberReference),
 }
 
 #[derive(Debug, Default, Clone)]

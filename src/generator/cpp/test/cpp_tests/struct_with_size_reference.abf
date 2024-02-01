@@ -1,0 +1,13 @@
+
+endian big
+
+struct Volume {
+    w: u8,
+    h: u16,
+    l: u32
+}
+
+struct Main {
+    volume_size : u8 = volume.size,
+    volume : Volume
+}

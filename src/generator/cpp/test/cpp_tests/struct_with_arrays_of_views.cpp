@@ -1,9 +1,11 @@
 #include <utest/utest.h>
 #include "struct_with_arrays_of_views.h"
 
+using namespace struct_with_arrays_of_views;
+
 UTEST_MAIN();
 
-UTEST(struct_with_arrays_of_natives, serde) {
+UTEST(struct_with_arrays_of_views, serde) {
     uint8_t buffer[1024];
 
     NumbersSeqSer numbers_ser;

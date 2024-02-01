@@ -2,6 +2,8 @@
 #include "no_type.h"
 #include <limits>
 
+using namespace no_type;
+
 UTEST_MAIN();
 
 UTEST(bswap, u8) {

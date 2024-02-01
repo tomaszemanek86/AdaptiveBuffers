@@ -1,3 +1,5 @@
+//#include <iostream>
+//#define LOGE(msg) std::cerr << msg << std::endl;
 pub static SOURCE: &str = "
 #pragma once
 #include <cstdint>
@@ -5,9 +7,6 @@ pub static SOURCE: &str = "
 #include <stdexcept>
 #include <vector>
 #include <limits>
-
-#include <iostream>
-#define LOGE(msg) std::cerr << msg << std::endl;
 
 namespace abf {
 <<BSWAP_SOURCE>>
@@ -46,6 +45,34 @@ namespace abf {
     private:
         TData data_;
         bool set_;
+    };
+
+    template <typename TSerializer, typename TValue, TValue Value>
+    class ConstantSerializer {
+    public:
+        using Data = TSerializer::Data;
+
+        ConstantSerializer() : serializer_() {
+            serializer_.set_data(Value);
+        }
+
+        uint32_t serialize(uint8_t* dest) {
+            return serializer_.serialize(dest);
+        }
+
+        void set_data(Data data) {
+        }
+
+        uint32_t size() {
+            return serializer_.size();
+        }
+
+        void init() {
+            serializer_.init();
+        }
+
+    private:
+        TSerializer serializer_;
     };
 
     template <typename TSerializer>
@@ -235,6 +262,10 @@ namespace abf {
             size_->init();
         }
 
+        uint32_t size() {
+            return array_.size();
+        }
+
         void set_size_serializer(TSizeSerializer *size) {
             size_ = size;
         }
@@ -287,7 +318,7 @@ namespace abf {
             if (!_deserialized()) {
                 throw std::runtime_error(\"Source not set\");
             }
-            TData value;
+            TData value = 0;
             copy(&value, source_, Size);
             return value;
         }
@@ -519,40 +550,65 @@ inline uint64_t bswap64(uint64_t value) {
     return (static_cast<uint64_t>(bswap32(static_cast<uint32_t>(value))) << 32) |
            (bswap32(static_cast<uint32_t>(value >> 32)));
 }
+
 inline void bswap8_ptr(uint8_t* ptr) {
     *ptr = bswap8(*ptr);
 }
+
 inline void bswap16_ptr(uint16_t* ptr) {
     *ptr = bswap16(*ptr);
 }
+
 inline void bswap32_ptr(uint32_t* ptr) {
     *ptr = bswap32(*ptr);
 }
+
 inline void bswap64_ptr(uint64_t* ptr) {
     *ptr = bswap64(*ptr);
 }
 
 inline void copy(void* dest, void* source, size_t size) {
-    std::memcpy(dest, source, size);
     switch (size) {
         case 1:
+            std::memcpy(dest, source, size);
             bswap8_ptr(static_cast<uint8_t*>(dest));
             break;
         case 2:
+            std::memcpy(dest, source, size);
             bswap16_ptr(static_cast<uint16_t*>(dest));
             break;
+        case 3:
+            uint32_t u32_temp;
+            std::memcpy(&u32_temp, source, 4);
+            bswap32_ptr(&u32_temp);
+            std::memcpy(dest, reinterpret_cast<uint8_t*>(&u32_temp) + 1, 3);
+            break;
         case 4:
+            std::memcpy(dest, source, size);
             bswap32_ptr(static_cast<uint32_t*>(dest));
             break;
         case 8:
+            std::memcpy(dest, source, size);
             bswap64_ptr(static_cast<uint64_t*>(dest));
             break;
+        default:
+            throw std::runtime_error(\"Unsupported size\");
     }
 }
 ";
 
 pub static NO_BSWAP_SOURCE: &str = "
 inline void copy(void* dest, void* source, size_t size) {
-    std::memcpy(dest, source, size);
+    switch (size) {
+        case 1:
+        case 2:
+        case 4:
+        case 8:
+            std::memcpy(dest, source, size);
+            break;
+        case 3:
+            std::memcpy(dest, static_cast<uint8_t*>(source), size);
+            break;
+    }
 }
 ";

@@ -141,8 +141,14 @@ impl MemoryDetails for NativeType {
             Self::Bool => Some(1),
             Self::U8 => Some(1),
             Self::U16 => Some(2),
+            Self::U24 => Some(3),
             Self::U32 => Some(4),
             Self::U64 => Some(8),
+            Self::ConstU8(_) => Some(1),
+            Self::ConstU16(_) => Some(2),
+            Self::ConstU24(_) => Some(3),
+            Self::ConstU32(_) => Some(4),
+            Self::ConstU64(_) => Some(8),
             Self::I8 => Some(1),
             Self::I16 => Some(2),
             Self::I32 => Some(4),
@@ -150,6 +156,7 @@ impl MemoryDetails for NativeType {
             Self::Unknown => None,
             Self::ViewKeyReference(mr) => mr.native_key.exact_size(),
             Self::ArrayDimensionReference(mr) => mr.origin.exact_size(),
+            Self::StructMemberSize(m) => m.native.exact_size(),
         }
     }
 

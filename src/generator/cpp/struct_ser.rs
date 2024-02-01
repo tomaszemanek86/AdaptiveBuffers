@@ -10,7 +10,10 @@ pub fn generate_struct_serializer(m: &StructMemory, writer: &mut Writer) {
             generate_with_method(m, i, writer);
         }
     }
+    generate_size(m, writer);
     generate_serialize(m, writer);
+    generate_serialize_into_vector(writer);
+    generate_init(m, writer);
     writer.private();
     for i in 0..m.fields.len() {
         generate_member_serialzier(m, i, writer);
@@ -66,14 +69,36 @@ fn generate_with_method(m: &StructMemory, i: usize, writer: &mut Writer) {
     }
 }
 
+fn generate_size(m: &StructMemory, writer: &mut Writer) {
+    writer.write_with_offset("uint32_t size()");
+    writer.scope_in();
+    writer.write_line("uint32_t size = 0;");
+    for sm in &m.fields {
+        writer.write_line(&format!("size += {}_.size();", sm.as_ref().variable()));
+    }
+    writer.write_line("return size;");
+    writer.scope_out(false);
+}
+
 fn generate_serialize(m: &StructMemory, writer: &mut Writer) {
     writer.write_with_offset("uint32_t serialize(uint8_t *dest)");
     writer.scope_in();
-    writer.write_line("uint32_t result(0);");
     writer.write_line("uint32_t offset = 0;");
     for sm in &m.fields {
+        if let Some(smr) = sm.get_struct_member_size_reference() {
+            writer.write_line(&format!("{}_.set_data({}_.size());", smr.origin.name, smr.member.name));
+        }
         writer.write_line(&format!("offset += {}_.serialize(dest + offset);", sm.as_ref().variable()));
     }
     writer.write_line("return offset;");
+    writer.scope_out(false);
+}
+
+fn generate_init(m: &StructMemory, writer: &mut Writer) {
+    writer.write_with_offset("void init()");
+    writer.scope_in();
+    for sm in &m.fields {
+        writer.write_line(&format!("{}_.init();", sm.as_ref().variable()));
+    }
     writer.scope_out(false);
 }

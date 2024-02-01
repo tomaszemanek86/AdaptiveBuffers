@@ -1,9 +1,11 @@
 #include <utest/utest.h>
 #include "view_with_natives.h"
 
+using namespace view_with_natives;
+
 UTEST_MAIN();
 
-UTEST(struct_with_natives, serde) {
+UTEST(view_with_natives, serde) {
     uint8_t buffer[1024];
     NumbersSer numbers_ser;
     numbers_ser.with_u16(60000);

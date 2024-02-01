@@ -5,14 +5,19 @@ pub fn generate_struct_deserializer(m: &StructMemory, writer: &mut Writer) {
     writer.scope_in();
     writer.public();
     generate_ctor(m, writer);
-    generate_init(m, writer);
     for i in 0..m.fields.len() {
         generate_deserialze(m, i, writer);
     }
     let groups = m.get_groups();
-    generate_deserialize_methods(m, 0, groups[0].0, groups[0].1, writer);
-    generate_deserialized(m, writer);
-    generate_source_set(m, writer);
+    if groups.is_empty() {
+        generate_empty_struct_methods(m, writer);
+    } else {
+        generate_init(m, writer);
+        generate_deserialize_methods(m, 0, groups[0].0, groups[0].1, writer);
+        generate_deserialized(m, writer);
+        generate_source_set(m, writer);
+        generate_end(m, writer);
+    }
     writer.private();
     for i in 1..groups.len() {
         generate_deserialize_methods(m, i, groups[i].0, groups[i].1, writer);
@@ -39,7 +44,8 @@ fn generate_ctor(m: &StructMemory, writer: &mut Writer) {
     let init = m.fields
         .iter()
         //.filter(|f| f.default_constructible_deserializer())
-        .map(|f| format!("{}_()", f.name))
+        .map(|f| format!("{}_(nullptr)", f.name)
+        )
         .collect::<Vec<String>>()
         .join(", ");
     if !init.is_empty() {
@@ -97,6 +103,36 @@ fn generate_member_deserialzier(m: &StructMemory, i: usize, writer: &mut Writer)
         sm.name));
 }
 
+fn generate_empty_struct_methods(
+    m: &StructMemory, 
+    writer: &mut Writer
+) {
+    writer.write_with_offset("bool _deserialized() ");
+    writer.scope_in();
+    writer.write_line("return source_ != nullptr;");
+    writer.scope_out(false);
+
+    writer.write_with_offset("void _set_source(uint8_t *source) ");
+    writer.scope_in();
+    writer.write_line("source_ = source;");
+    writer.scope_out(false);
+
+    writer.write_with_offset("bool _source_set() ");
+    writer.scope_in();
+    writer.write_line("return source_ != nullptr;");
+    writer.scope_out(false);
+
+    writer.write_with_offset("uint8_t* _end() ");
+    writer.scope_in();
+    writer.write_line("return source_;");
+    writer.scope_out(false);
+
+    writer.write_with_offset("void init() ");
+    writer.scope_in();
+    writer.write_line("source_ = nullptr;");
+    writer.scope_out(false);
+}
+
 fn generate_deserialize_methods(
     m: &StructMemory, 
     group_id: usize, 
@@ -132,7 +168,11 @@ fn generate_deserialized(
 ) {
     writer.write_with_offset(&format!("bool _deserialized()"));
     writer.scope_in();
-    writer.write_line(&format!("return {}_._deserialized();", m.fields.last().unwrap().name));
+    if m.fields.is_empty() {
+        writer.write_line("return source_ != nullptr;");
+    } else {
+        writer.write_line(&format!("return {}_._deserialized();", m.fields.last().unwrap().name));
+    }
     writer.scope_out(false);
 }
 
@@ -143,5 +183,15 @@ fn generate_source_set(
     writer.write_with_offset(&format!("bool _source_set()"));
     writer.scope_in();
     writer.write_line(&format!("return {}_._source_set();", m.fields.first().unwrap().name));
+    writer.scope_out(false);
+}
+
+fn generate_end(
+    m: &StructMemory, 
+    writer: &mut Writer
+) {
+    writer.write_with_offset(&format!("uint8_t* _end()"));
+    writer.scope_in();
+    writer.write_line(&format!("return {}_._end();", m.fields.first().unwrap().name));
     writer.scope_out(false);
 }

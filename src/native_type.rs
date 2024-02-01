@@ -36,33 +36,31 @@ impl NativeType {
             Self::I64 => 8,
             Self::U8 => 1,
             Self::U16 => 2,
+            Self::U24 => 3,
             Self::U32 => 4,
             Self::U64 => 8,
+            Self::ConstU8(_) => 1,
+            Self::ConstU16(_) => 2,
+            Self::ConstU24(_) => 3,
+            Self::ConstU32(_) => 4,
+            Self::ConstU64(_) => 8,
             Self::Unknown => panic!("cannot get bytes from unknow native type"),
             Self::ViewKeyReference(mr) => mr.key.memory.borrow().memory.as_native().unwrap().size(),
             Self::ArrayDimensionReference(mr) => mr.size.memory.borrow().memory.as_native().unwrap().size(),
+            Self::StructMemberSize(m) => m.origin.memory.borrow().memory.as_native().unwrap().size(),
         }
     }
 
-    pub fn typename(&self, l: Language) -> &str {
-        match l {
-            Language::Cpp => {
-                match self {
-                    NativeType::Bool => "bool",
-                    NativeType::U8 => "uint8_t",
-                    NativeType::U16 => "uint16_t",
-                    NativeType::U32 => "uint32_t",
-                    NativeType::U64 => "uint64_t",
-                    NativeType::I8 => "int8_t",
-                    NativeType::I16 => "int16_t",
-                    NativeType::I32 => "int32_t",
-                    NativeType::I64 => "int64_t",
-                    NativeType::Unknown => panic!("unknown type"),
-                    NativeType::ViewKeyReference(_) => todo!(),
-                    NativeType::ArrayDimensionReference(_) => todo!(),
-                }
-            },
-            _ => panic!("unexpected language")
+    pub fn make_const(&mut self, value: usize) -> Result<(), String> {
+        match self {
+            Self::U8 => *self = Self::ConstU8(u8::try_from(value).or(Err(format!("Cannot convert {} to u8", value)))?),
+            Self::U16 => *self = Self::ConstU16(u16::try_from(value).or(Err(format!("Cannot convert {} to u16", value)))?),
+            Self::U24 => *self = Self::ConstU24(u32::try_from(value).or(Err(format!("Cannot convert {} to u24", value)))?),
+            Self::U32 => *self = Self::ConstU32(u32::try_from(value).or(Err(format!("Cannot convert {} to u32", value)))?),
+            Self::U64 => *self = Self::ConstU64(u64::try_from(value).or(Err(format!("Cannot convert {} to u64", value)))?),
+            Self::Unknown => return Err("unexpcted".into()),
+            _ => panic!("cannot make const")
         }
+        Ok(())
     }
 }

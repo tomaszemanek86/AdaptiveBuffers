@@ -26,4 +26,17 @@ impl StructMemberMemory {
         }
         None
     }
+
+    pub fn get_struct_member_size_reference<'a>(&self) -> Option<StructMemberSizeReference> {
+        for m in &self.structure.borrow().fields {
+            if let Some(nt) = m.memory.borrow().memory.as_native() {
+                if let Some(sms) = nt.as_struct_member_size() {
+                    if sms.member.name == self.name {
+                        return Some(sms.clone())
+                    }
+                }
+            }
+        }
+        None
+    }
 }

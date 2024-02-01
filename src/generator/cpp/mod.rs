@@ -38,7 +38,7 @@ trait CppMemoryDetail {
 }
 
 pub fn generate(m: &Vec<MemoryDeclaration>, byte_swap: bool, args: &Args) {
-    let output_file = std::path::Path::new(&args.protofile)
+    let output_namespace = std::path::Path::new(&args.protofile)
         .file_stem()
         .expect("could not extract stem")
         .to_str()
@@ -56,8 +56,10 @@ pub fn generate(m: &Vec<MemoryDeclaration>, byte_swap: bool, args: &Args) {
     });
     let _ = f.write_all(abf_source_code.as_bytes()).expect("write abf.h failed");
     
-    let mut writer = Writer::new(&format!("{}/{}.h", args.output_dir, output_file));
+    let mut writer = Writer::new(&format!("{}/{}.h", args.output_dir, output_namespace));
+    writer.write_line("#pragma once");
     writer.write_line("#include \"abf.h\"");
+    writer.write_line(&format!("namespace {} {{", output_namespace));
     for md in m {
         match &md.memory.memory {
             MemoryType::Native(_) => panic!("Unexpected"),
@@ -76,5 +78,15 @@ pub fn generate(m: &Vec<MemoryDeclaration>, byte_swap: bool, args: &Args) {
             },
         }
     }
+    writer.write_line("}");
     
+}
+
+fn generate_serialize_into_vector(writer: &mut Writer) {
+    writer.write_with_offset("std::vector<uint8_t> serialize() ");
+    writer.scope_in();
+    writer.write_line("std::vector<uint8_t> out(size(), 0);");
+    writer.write_line("serialize(out.data());");
+    writer.write_line("return out;");
+    writer.scope_out(false);
 }

@@ -40,11 +40,15 @@ impl TypeVariant {
                             typ: Self::from_parser_typ(&member.typ.typ, member.typ.array_size.clone()),
                             constant: match &member.constant {
                                     parser::StructMemberConstant::No => None,
+                                    parser::StructMemberConstant::Usize(value) => Some(StructMemberConstant::Usize(*value)),
                                     parser::StructMemberConstant::ViewMemberKey(mr) => {
                                         Some(StructMemberConstant::ViewReferenceKey(mr.clone()))
                                     },
                                     parser::StructMemberConstant::ArrayDimension(mr) => {
                                         Some(StructMemberConstant::ArrayDimension(mr.clone()))
+                                    }
+                                    parser::StructMemberConstant::Size(mr) => {
+                                        Some(StructMemberConstant::Size(mr.clone()))
                                     }
                             },
                         };
@@ -101,15 +105,6 @@ impl TypeVariant {
             TypeVariant::Struct(structure) => structure.borrow().has_known_types(known_types),
             TypeVariant::View(view) => view.borrow().has_known_types(known_types),
             TypeVariant::Enum(_) => return true,
-            TypeVariant::Int(_) => return true,
-            TypeVariant::Unknown(_) => panic!("unexpected unknoqn type"),
-        }
-    }
-    pub fn has_known_type(&self, name: &str) -> bool {
-        match self {
-            TypeVariant::Struct(structure) => return structure.borrow().name.data == name,
-            TypeVariant::View(view) => return view.borrow().name == name,
-            TypeVariant::Enum(_) => return false,
             TypeVariant::Int(_) => return true,
             TypeVariant::Unknown(_) => panic!("unexpected unknoqn type"),
         }

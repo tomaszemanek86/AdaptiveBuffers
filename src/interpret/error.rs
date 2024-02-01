@@ -58,6 +58,9 @@ impl ToString for InterpretError {
             InterpretError::EndianOverrided(origin, overrided) => {
                 format!("Endian cannot be override, originally defined here {} overided here {}", origin.pos(), overrided.pos())
             }
+            InterpretError::GenericError(text) => text.clone(),
+            InterpretError::GenericWithPosError(cv, text) => format!("{} in {}", text, cv.pos()),
+            InterpretError::CannotAsignUsizeCstToNonUnsignedMemory(value) => format!("Cannot asign {} to non unsigned memory", value),
         }
     }
 }

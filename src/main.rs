@@ -17,6 +17,7 @@ mod enum_memory;
 mod array_size;
 
 use clap::Parser;
+use interpret::InterpretError;
 use std::{fmt::Display, fs, process::exit, rc::Rc, cell::RefCell};
 
 #[derive(Clone, Default, Debug)]
@@ -130,13 +131,26 @@ pub struct ViewKeyReference {
     view: Rc<StructMemberMemory>
 }
 
+#[derive(Debug, Clone)]
+pub struct StructMemberSizeReference {
+    native: Rc<NativeType>,
+    origin: Rc<StructMemberMemory>,
+    member: Rc<StructMemberMemory>
+}
+
 #[derive(Debug, Clone, variation::Variation)]
 pub enum NativeType {
     Bool,
     U8,
     U16,
+    U24,
     U32,
     U64,
+    ConstU8(u8),
+    ConstU16(u16),
+    ConstU24(u32),
+    ConstU32(u32),
+    ConstU64(u64),
     I8,
     I16,
     I32,
@@ -144,6 +158,7 @@ pub enum NativeType {
     Unknown,
     ViewKeyReference(ViewKeyReference),
     ArrayDimensionReference(ArrayDimensionReference),
+    StructMemberSize(StructMemberSizeReference),
 }
 
 trait ExactSize {
@@ -204,19 +219,14 @@ pub struct MemoryImage {
     memory_decl: Vec<MemoryDeclaration>
 }
 
-fn interpet_memory(content: String) -> MemoryImage {
+fn interpet_memory(content: String) -> Result<MemoryImage, InterpretError> {
     let tokens = parser::parse(content)
         .or_else(|e| -> Result<Vec<parser::SyntaxToken>, String> {
             log::error!("parse error: {}", e.to_string());
-            exit(1);
+            Err(e.to_string())
         })
         .unwrap();
     interpret::interpret(tokens)
-        .or_else(|e| -> Result<MemoryImage, String> {
-            log::error!("interpreting failed: {}", e.to_string());
-            exit(1);
-        })
-        .unwrap()
 }
 
 fn generate_cpp(memory_image: MemoryImage, args: &Args) {
@@ -263,11 +273,11 @@ fn cpp_ptr_size() -> usize {
 }
 
 fn main() {
-    simple_logger::SimpleLogger::new().init().unwrap();
     let args = Args::parse();
-    simple_logger::SimpleLogger::new()
-        .without_timestamps()
-        .init()
+    let logger = simple_logger::SimpleLogger::new()
+        .without_timestamps();
+    log::set_max_level(logger.max_level());
+    logger.init()
         .unwrap();
     log::info!("Protofile: {}", &args.protofile);
     let language = Language::from(args.language.clone());
@@ -275,12 +285,16 @@ fn main() {
     let content = fs::read_to_string(args.protofile.as_str())
         .or_else(|_| -> Result<String, String> {
             log::error!("Unable to read {}", &args.protofile);
-            exit(1);
+            exit(1)
         })
         .unwrap();
     let memory_image = interpet_memory(content);
+    if memory_image.is_err() {
+        log::error!("interpreting failed: {}", memory_image.err().unwrap().to_string());
+        return
+    }
     match language {
-        Language::Cpp => generate_cpp(memory_image, &args),
+        Language::Cpp => generate_cpp(memory_image.unwrap(), &args),
         _ => panic!("unexpected langage")
     }
 }

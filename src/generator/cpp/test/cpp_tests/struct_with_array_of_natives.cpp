@@ -1,9 +1,11 @@
 #include <utest/utest.h>
 #include "struct_with_array_of_natives.h"
 
+using namespace struct_with_array_of_natives;
+
 UTEST_MAIN();
 
-UTEST(struct_with_natives, serde) {
+UTEST(struct_with_array_of_natives, serde) {
     uint8_t buffer[1024];
     DimensionSer dim_ser;
     

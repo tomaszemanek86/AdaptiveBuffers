@@ -1,6 +1,8 @@
 #include <utest/utest.h>
 #include "struct_with_reference_view.h"
 
+using namespace struct_with_reference_view;
+
 UTEST_MAIN();
 
 UTEST(struct_with_reference_view, serde) {
