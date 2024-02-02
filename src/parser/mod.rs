@@ -102,7 +102,8 @@ pub struct MemberReference {
 
 #[derive(variation::Variation, Debug, Clone)]
 pub enum SizeArithmetics {
-    MemberReference(MemberReference),
+    MemberSizeReference(MemberReference),
+    MemberValueReference(MemberReference),
     Plus,
     Minus,
     Usize(usize)

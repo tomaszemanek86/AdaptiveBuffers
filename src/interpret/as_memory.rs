@@ -93,16 +93,31 @@ impl AsMemory for Struct {
                     },
                     StructMemberConstant::SizeArithmetics(sa) => {
                         let native = Rc::new(self.members[i].typ.as_memory(others)?.memory.as_native().unwrap().clone());
+                        for it in sa.iter() {
+                            match &it.data {
+                                parser::SizeArithmetics::MemberValueReference(mr) => {
+                                    let index = self.get_member_index_by_name(&mr.member_name.data).unwrap();
+                                    if !structure.borrow().fields[index].memory.borrow().memory.can_get_unsigned_value() {
+                                        return Err(InterpretError::MemberValueNoUnsigned(it.code_view.clone()))
+                                    }
+                                },
+                                _ => continue
+                            }
+                        }
                         *f.memory.borrow_mut() = MemoryType::Native(NativeType::StructMemberSizeArithmetics(
                             StructMemberSizeArithmetics {
                                 native: native,
                                 arithmetics: sa.iter().map(|it| match &it.data {
                                     parser::SizeArithmetics::Plus => SizeArithmetics::Plus,
                                     parser::SizeArithmetics::Minus => SizeArithmetics::Minus,
-                                    parser::SizeArithmetics::MemberReference(mr) => {
+                                    parser::SizeArithmetics::MemberSizeReference(mr) => {
                                         let index = self.get_member_index_by_name(&mr.member_name.data).unwrap();
                                         SizeArithmetics::StructMemberSizeReference(structure.borrow().fields[index].clone())
-                                    }
+                                    },
+                                    parser::SizeArithmetics::MemberValueReference(mr) => {
+                                        let index = self.get_member_index_by_name(&mr.member_name.data).unwrap();
+                                        SizeArithmetics::StructMemberValueReference(structure.borrow().fields[index].clone())
+                                    },
                                     parser::SizeArithmetics::Usize(value) => SizeArithmetics::Usize(*value)
                                 }).collect()
                             }

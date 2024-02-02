@@ -456,12 +456,14 @@ impl<'b> Parser for SizeArithmetics {
     fn parse<'a>(&mut self, text: &CodeView) -> Result<CodeView, Option<ParseError>> {
         let mut plus = Token::new("+", false);
         let mut minus = Token::new("-", false);
-        let mut member_reference = MemberReference::new("size");
+        let mut member_size_reference = MemberReference::new("size");
+        let mut member_value_reference = MemberReference::new("value");
         let mut constant = Value::<usize>::default();
-        let mut or_posibilities: [&mut dyn Parser; 4] = [
+        let mut or_posibilities: [&mut dyn Parser; 5] = [
             &mut plus, 
             &mut minus, 
-            &mut member_reference,
+            &mut member_size_reference,
+            &mut member_value_reference,
             &mut constant
         ];
         let mut or = Or::new(
@@ -480,8 +482,9 @@ impl<'b> Parser for SizeArithmetics {
         match or.index {
             0 => *self = SizeArithmetics::Plus,
             1 => *self = SizeArithmetics::Minus,
-            2 => *self = SizeArithmetics::MemberReference(member_reference),
-            3 => *self = SizeArithmetics::Usize(constant.value.unwrap()),
+            2 => *self = SizeArithmetics::MemberSizeReference(member_size_reference),
+            3 => *self = SizeArithmetics::MemberValueReference(member_value_reference),
+            4 => *self = SizeArithmetics::Usize(constant.value.unwrap()),
             _ => panic!("Unexpected index"),
         }
         Ok(res)
@@ -512,12 +515,6 @@ impl<'b> Parser for StructMemberConstant {
             3 => {
                 if size_rithmetics_repeat.parsed.len() == 0 {
                     return Err(Some(ParseError::ExpectedExpression(res)))
-                } else if size_rithmetics_repeat.parsed.len() == 1 {
-                    match &size_rithmetics_repeat.parsed[0].data {
-                        SizeArithmetics::Usize(value) => *self = StructMemberConstant::Usize(*value),
-                        SizeArithmetics::MemberReference(mr) => *self = StructMemberConstant::Size(mr.clone()),
-                        _ => return Err(Some(ParseError::ExpectedMemberSizeReferenceOrUsize(size_rithmetics_repeat.parsed[0].code_view.clone())))
-                    }
                 } else {
                     *self = StructMemberConstant::SizeArithmetics(size_rithmetics_repeat.parsed)
                 }
@@ -1110,18 +1107,20 @@ mod test {
     #[test]
     fn size_arithmetics() {
         let mut parser = StructMemberConstant::No;
-        let res = parser.parse(&CodeView::from("+a.size  + b.size-cde.size + 100"));
+        let res = parser.parse(&CodeView::from("+a.size  + b.size-cde.size + 100 - xyz.value"));
         assert_eq!(res.is_ok(), true);
         assert_eq!(parser.is_size_arithmetics(), true);
         let &sa = &parser.as_size_arithmetics().unwrap();
-        assert_eq!(sa.len(), 8);
+        assert_eq!(sa.len(), 10);
         assert!(sa[0].is_plus());
-        assert!(sa[1].is_member_reference());
+        assert!(sa[1].is_member_size_reference());
         assert!(sa[2].is_plus());
-        assert!(sa[3].is_member_reference());
+        assert!(sa[3].is_member_size_reference());
         assert!(sa[4].is_minus());
-        assert!(sa[5].is_member_reference());
+        assert!(sa[5].is_member_size_reference());
         assert!(sa[6].is_plus());
         assert!(sa[7].is_usize());
+        assert!(sa[8].is_minus());
+        assert!(sa[9].is_member_value_reference());
     }
 }

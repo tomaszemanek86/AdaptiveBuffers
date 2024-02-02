@@ -24,5 +24,5 @@ UTEST(struct_with_size_arithmetics, serde) {
     ASSERT_EQ(absize_de.c().get(1).get_data(), 170);
     ASSERT_EQ(absize_de.c().get(2).get_data(), 160);
     ASSERT_EQ(absize_de.c().get(3).get_data(), 150);
-    ASSERT_EQ(absize_de.size(), 17 + 100 - 50);
+    ASSERT_EQ(absize_de.size(), 17 + 100 - 50 + 6/*b.value*/);
 }

@@ -64,4 +64,15 @@ impl NativeType {
         }
         Ok(())
     }
+
+    pub fn is_unsigned(&self) -> bool {
+        match self {
+            Self::U8 => true,
+            Self::U16 => true,
+            Self::U24 => true,
+            Self::U32 => true,
+            Self::U64 => true,
+            _ => false
+        }
+    }
 }

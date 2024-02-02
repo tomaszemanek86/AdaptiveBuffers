@@ -38,6 +38,13 @@ namespace abf {
             return Size;
         }
 
+        TData data() {
+            if (!set_) {
+                throw std::runtime_error(\"Not set\");
+            }
+            return data;
+        }
+
         void init() {
             set_ = false;
         }

@@ -44,6 +44,7 @@ pub enum InterpretError {
     CannotAsignUsizeCstToNonUnsignedMemory(usize),
     ExpectedOperator(CodeView),
     ExpectedMemberSize(CodeView),
+    MemberValueNoUnsigned(CodeView)
 }
 
 #[derive(variation::Variation, Clone)]

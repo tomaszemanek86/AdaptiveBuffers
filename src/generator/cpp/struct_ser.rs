@@ -95,6 +95,7 @@ fn generate_serialize(m: &StructMemory, writer: &mut Writer) {
                         SizeArithmetics::Plus => String::from("+"),
                         SizeArithmetics::Minus => String::from("-"),
                         SizeArithmetics::StructMemberSizeReference(mr) => format!("{}_.size()", mr.name),
+                        SizeArithmetics::StructMemberValueReference(mr) => format!("{}_.data()", mr.name),
                         SizeArithmetics::Usize(value) => value.to_string(),
                     }
                 })

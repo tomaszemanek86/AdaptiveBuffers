@@ -22,4 +22,11 @@ impl MemoryType {
             _ => None
         }
     }
+
+    pub fn can_get_unsigned_value(&self) -> bool {
+        match self {
+            MemoryType::Native(n) => n.is_unsigned(),
+            _ => false
+        }
+    }
 }
