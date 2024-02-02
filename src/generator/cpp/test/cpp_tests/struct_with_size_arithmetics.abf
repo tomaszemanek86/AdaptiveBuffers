@@ -4,5 +4,5 @@ struct ABSize {
     a: u8,
     b: u16,
     c: [u32],
-    size: u8 = c.size - a.size + b.size
+    size: u8 = 100 + c.size - a.size + b.size - 50
 }

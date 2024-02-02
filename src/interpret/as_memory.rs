@@ -103,6 +103,7 @@ impl AsMemory for Struct {
                                         let index = self.get_member_index_by_name(&mr.member_name.data).unwrap();
                                         SizeArithmetics::StructMemberSizeReference(structure.borrow().fields[index].clone())
                                     }
+                                    parser::SizeArithmetics::Usize(value) => SizeArithmetics::Usize(*value)
                                 }).collect()
                             }
                         )).non_array_memory();

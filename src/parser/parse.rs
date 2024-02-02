@@ -457,10 +457,12 @@ impl<'b> Parser for SizeArithmetics {
         let mut plus = Token::new("+", false);
         let mut minus = Token::new("-", false);
         let mut member_reference = MemberReference::new("size");
-        let mut or_posibilities: [&mut dyn Parser; 3] = [
+        let mut constant = Value::<usize>::default();
+        let mut or_posibilities: [&mut dyn Parser; 4] = [
             &mut plus, 
             &mut minus, 
-            &mut member_reference
+            &mut member_reference,
+            &mut constant
         ];
         let mut or = Or::new(
             &mut or_posibilities,
@@ -479,6 +481,7 @@ impl<'b> Parser for SizeArithmetics {
             0 => *self = SizeArithmetics::Plus,
             1 => *self = SizeArithmetics::Minus,
             2 => *self = SizeArithmetics::MemberReference(member_reference),
+            3 => *self = SizeArithmetics::Usize(constant.value.unwrap()),
             _ => panic!("Unexpected index"),
         }
         Ok(res)
@@ -1108,16 +1111,18 @@ mod test {
     #[test]
     fn size_arithmetics() {
         let mut parser = StructMemberConstant::No;
-        let res = parser.parse(&CodeView::from("+a.size  + b.size-cde.size"));
+        let res = parser.parse(&CodeView::from("+a.size  + b.size-cde.size + 100"));
         assert_eq!(res.is_ok(), true);
         assert_eq!(parser.is_size_arithmetics(), true);
         let &sa = &parser.as_size_arithmetics().unwrap();
-        assert_eq!(sa.len(), 6);
+        assert_eq!(sa.len(), 8);
         assert!(sa[0].is_plus());
         assert!(sa[1].is_member_reference());
         assert!(sa[2].is_plus());
         assert!(sa[3].is_member_reference());
         assert!(sa[4].is_minus());
         assert!(sa[5].is_member_reference());
+        assert!(sa[6].is_plus());
+        assert!(sa[7].is_usize());
     }
 }

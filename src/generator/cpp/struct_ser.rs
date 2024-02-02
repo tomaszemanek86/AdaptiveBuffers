@@ -94,7 +94,8 @@ fn generate_serialize(m: &StructMemory, writer: &mut Writer) {
                     match it {
                         SizeArithmetics::Plus => String::from("+"),
                         SizeArithmetics::Minus => String::from("-"),
-                        SizeArithmetics::StructMemberSizeReference(mr) => format!("{}_.size()", mr.name)
+                        SizeArithmetics::StructMemberSizeReference(mr) => format!("{}_.size()", mr.name),
+                        SizeArithmetics::Usize(value) => value.to_string(),
                     }
                 })
                 .collect::<Vec<String>>()
