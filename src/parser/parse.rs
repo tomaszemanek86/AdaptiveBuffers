@@ -452,19 +452,54 @@ impl<'b> Parser for MemberReference {
     }
 }
 
+impl<'b> Parser for SizeArithmetics {
+    fn parse<'a>(&mut self, text: &CodeView) -> Result<CodeView, Option<ParseError>> {
+        let mut plus = Token::new("+", false);
+        let mut minus = Token::new("-", false);
+        let mut member_reference = MemberReference::new("size");
+        let mut or_posibilities: [&mut dyn Parser; 3] = [
+            &mut plus, 
+            &mut minus, 
+            &mut member_reference
+        ];
+        let mut or = Or::new(
+            &mut or_posibilities,
+            "Size arithmetics invalid",
+        );
+        let mut before = WhiteChars::default();
+        let mut after = WhiteChars::default();
+        let mut arr: [&mut dyn Parser; 3] = [
+            &mut before,
+            &mut or,
+            &mut after
+        ];
+        let mut or_seq = Sequence::new(&mut arr);
+        let res: CodeView = or_seq.parse(text)?;
+        match or.index {
+            0 => *self = SizeArithmetics::Plus,
+            1 => *self = SizeArithmetics::Minus,
+            2 => *self = SizeArithmetics::MemberReference(member_reference),
+            _ => panic!("Unexpected index"),
+        }
+        Ok(res)
+    }
+}
+
 impl<'b> Parser for StructMemberConstant {
     fn parse<'a>(&mut self, text: &CodeView) -> Result<CodeView, Option<ParseError>> {
         let mut value = Value::<usize>::default();
+        let mut size_rithmetics_repeat = Repeat::<SizeArithmetics, SizeArithmetics>::new(SizeArithmetics::Plus);
         let mut view_reference = MemberReference::new("key");
         let mut array_dimension = MemberReference::new("dimension");
         let mut size = MemberReference::new("size");
         let mut enum_member_ref = EnumMemberRef::default();
-        let mut or_posibilities: [&mut dyn Parser; 5] = [
+        let mut or_posibilities: [&mut dyn Parser; 6] = [
+            &mut size_rithmetics_repeat,
             &mut view_reference, 
             &mut array_dimension, 
             &mut value, 
             &mut size,
-            &mut enum_member_ref
+            &mut enum_member_ref,
         ];
         let mut or = Or::new(
             &mut or_posibilities,
@@ -472,11 +507,12 @@ impl<'b> Parser for StructMemberConstant {
         );
         let res: CodeView = or.parse(text)?;
         match or.index {
-            0 => *self = StructMemberConstant::ViewMemberKey(view_reference),
-            1 => *self = StructMemberConstant::ArrayDimension(array_dimension),
-            2 => *self = StructMemberConstant::Usize(value.value.unwrap()),
-            3 => *self = StructMemberConstant::Size(size),
-            4 => *self = StructMemberConstant::EnumMemberValue(enum_member_ref),
+            0 => *self = StructMemberConstant::SizeArithmetics(size_rithmetics_repeat.parsed),
+            1 => *self = StructMemberConstant::ViewMemberKey(view_reference),
+            2 => *self = StructMemberConstant::ArrayDimension(array_dimension),
+            3 => *self = StructMemberConstant::Usize(value.value.unwrap()),
+            4 => *self = StructMemberConstant::Size(size),
+            5 => *self = StructMemberConstant::EnumMemberValue(enum_member_ref),
             _ => panic!("Unexpected index"),
         }
         Ok(res)
@@ -1060,5 +1096,21 @@ mod test {
         assert_eq!(parser.types[1].constant.as_ref().unwrap().is_enum_member_ref(), true);
         assert_eq!(parser.types[1].constant.as_ref().unwrap().as_enum_member_ref().unwrap().enum_name.data, "AnEnum");
         assert_eq!(parser.types[1].constant.as_ref().unwrap().as_enum_member_ref().unwrap().enum_member.data, "U16");
+    }
+
+    #[test]
+    fn size_arithmetics() {
+        let mut parser = StructMemberConstant::No;
+        let res = parser.parse(&CodeView::from("+a.size  + b.size-cde.size"));
+        assert_eq!(res.is_ok(), true);
+        assert_eq!(parser.is_size_arithmetics(), true);
+        let &sa = &parser.as_size_arithmetics().unwrap();
+        assert_eq!(sa.len(), 6);
+        assert!(sa[0].is_plus());
+        assert!(sa[1].is_member_reference());
+        assert!(sa[2].is_plus());
+        assert!(sa[3].is_member_reference());
+        assert!(sa[4].is_minus());
+        assert!(sa[5].is_member_reference());
     }
 }

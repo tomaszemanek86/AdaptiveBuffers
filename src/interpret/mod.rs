@@ -78,6 +78,7 @@ pub enum StructMemberConstant {
     Usize(usize),
     Size(parser::MemberReference),
     EnumMemberValue(parser::EnumMemberRef),
+    SizeArithmetics(Vec<parser::SizeArithmetics>),
 }
 
 #[derive(Clone)]

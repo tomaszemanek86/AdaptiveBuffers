@@ -98,6 +98,13 @@ pub struct MemberReference {
 }
 
 #[derive(variation::Variation, Debug, Clone)]
+pub enum SizeArithmetics {
+    MemberReference(MemberReference),
+    Plus,
+    Minus
+}
+
+#[derive(variation::Variation, Debug, Clone)]
 pub enum StructMemberConstant {
     No,
     ViewMemberKey(MemberReference),
@@ -105,6 +112,7 @@ pub enum StructMemberConstant {
     Usize(usize),
     Size(MemberReference),
     EnumMemberValue(EnumMemberRef),
+    SizeArithmetics(Vec<SizeArithmetics>),
 }
 
 #[derive(Debug, Default, Clone)]

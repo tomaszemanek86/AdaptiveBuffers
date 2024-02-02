@@ -52,6 +52,9 @@ impl TypeVariant {
                                     },
                                     parser::StructMemberConstant::EnumMemberValue(emv) => {
                                         Some(StructMemberConstant::EnumMemberValue(emv.clone()))
+                                    },
+                                    parser::StructMemberConstant::SizeArithmetics(sa) => {
+                                        Some(StructMemberConstant::SizeArithmetics(sa.clone()))
                                     }
                             },
                         };

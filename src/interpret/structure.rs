@@ -81,6 +81,9 @@ impl Struct {
                     },
                     StructMemberConstant::EnumMemberValue(emr) => {
                         types.get_enum_member_value(&emr.enum_name.data, &emr.enum_member.data)?;
+                    },
+                    StructMemberConstant::SizeArithmetics(sa) => {
+                        todo!()
                     }
                 }
             }

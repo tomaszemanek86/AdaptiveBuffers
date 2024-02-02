@@ -90,6 +90,9 @@ impl AsMemory for Struct {
                         } else {
                             return Err(InterpretError::CannotAsignUsizeCstToNonUnsignedMemory(value))
                         }
+                    },
+                    StructMemberConstant::SizeArithmetics(sa) => {
+                        todo!()
                     }
                 } 
             }
