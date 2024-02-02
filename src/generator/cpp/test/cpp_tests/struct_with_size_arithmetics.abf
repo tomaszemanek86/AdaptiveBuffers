@@ -3,5 +3,6 @@ endian big
 struct ABSize {
     a: u8,
     b: u16,
-    size: u8 = a.size + b.size
+    c: [u32],
+    size: u8 = c.size - a.size + b.size
 }
