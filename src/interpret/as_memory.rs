@@ -14,11 +14,11 @@ impl AsMemory for Struct {
         }));
         for member in &self.members {
             if let Some(c) = &member.constant {
-                if !c.is_usize() {
+                if c.is_usize() || c.is_enum_member_value() {
                     structure.borrow_mut().fields.push(Rc::new(StructMemberMemory {
                         name: member.name.data.clone(),
                         index: member.index,
-                        memory: RefCell::new(MemoryType::Native(NativeType::Unknown).non_array_memory()),
+                        memory: RefCell::new(member.typ.as_memory(others)?),
                         structure: structure.clone()
                     }));
                     continue

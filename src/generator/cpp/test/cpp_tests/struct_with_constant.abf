@@ -1,7 +1,14 @@
 endian big
 
+enum Constant : u16 {
+    Ten = 10,
+    Hundred = 100,
+    Thousend = 1000
+}
+
 struct Message {
     byte0: u8 = he0,
     byte1: u8 = b11,
+    byte2: u8 = Constant::Hundred,
     value: u16
 }
