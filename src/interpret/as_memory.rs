@@ -92,7 +92,21 @@ impl AsMemory for Struct {
                         }
                     },
                     StructMemberConstant::SizeArithmetics(sa) => {
-                        todo!()
+                        let native = Rc::new(self.members[i].typ.as_memory(others)?.memory.as_native().unwrap().clone());
+                        *f.memory.borrow_mut() = MemoryType::Native(NativeType::StructMemberSizeArithmetics(
+                            StructMemberSizeArithmetics {
+                                native: native,
+                                arithmetics: sa.iter().map(|it| match &it.data {
+                                    parser::SizeArithmetics::Plus => SizeArithmetics::Plus,
+                                    parser::SizeArithmetics::Minus => SizeArithmetics::Minus,
+                                    parser::SizeArithmetics::MemberReference(mr) => {
+                                        let index = self.get_member_index_by_name(&mr.member_name.data).unwrap();
+                                        SizeArithmetics::StructMemberSizeReference(structure.borrow().fields[index].clone())
+                                    }
+                                }).collect()
+                            }
+                        )).non_array_memory();
+                        
                     }
                 } 
             }
