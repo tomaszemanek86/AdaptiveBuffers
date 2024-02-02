@@ -48,6 +48,7 @@ impl NativeType {
             Self::ViewKeyReference(mr) => mr.key.memory.borrow().memory.as_native().unwrap().size(),
             Self::ArrayDimensionReference(mr) => mr.size.memory.borrow().memory.as_native().unwrap().size(),
             Self::StructMemberSize(m) => m.origin.memory.borrow().memory.as_native().unwrap().size(),
+            NativeType::StructMemberSizeArithmetics(m) => m.native.size(),
         }
     }
 

@@ -139,6 +139,19 @@ pub struct StructMemberSizeReference {
 }
 
 #[derive(Debug, Clone, variation::Variation)]
+pub enum SizeArithmetics {
+    StructMemberSizeReference(StructMemberSizeReference),
+    Plus,
+    Minus
+}
+
+#[derive(Debug, Clone)]
+pub struct StructMemberSizeArithmetics {
+    native: Rc<NativeType>,
+    arithmetics: Vec<SizeArithmetics>
+}
+
+#[derive(Debug, Clone, variation::Variation)]
 pub enum NativeType {
     Bool,
     U8,
@@ -159,6 +172,7 @@ pub enum NativeType {
     ViewKeyReference(ViewKeyReference),
     ArrayDimensionReference(ArrayDimensionReference),
     StructMemberSize(StructMemberSizeReference),
+    StructMemberSizeArithmetics(StructMemberSizeArithmetics),
 }
 
 trait ExactSize {

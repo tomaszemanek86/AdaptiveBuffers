@@ -41,7 +41,9 @@ pub enum InterpretError {
     EndianOverrided(CodeView, CodeView),
     GenericError(String),
     GenericWithPosError(CodeView, String),
-    CannotAsignUsizeCstToNonUnsignedMemory(usize)
+    CannotAsignUsizeCstToNonUnsignedMemory(usize),
+    ExpectedOperator(CodeView),
+    ExpectedMemberSize(CodeView),
 }
 
 #[derive(variation::Variation, Clone)]
@@ -78,7 +80,7 @@ pub enum StructMemberConstant {
     Usize(usize),
     Size(parser::MemberReference),
     EnumMemberValue(parser::EnumMemberRef),
-    SizeArithmetics(Vec<parser::SizeArithmetics>),
+    SizeArithmetics(Vec<DataView<parser::SizeArithmetics>>),
 }
 
 #[derive(Clone)]

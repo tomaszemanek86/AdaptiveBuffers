@@ -194,6 +194,7 @@ impl CppMemoryDetail for NativeType {
             NativeType::ViewKeyReference(m) => m.native_key.name(),
             NativeType::ArrayDimensionReference(r) => r.origin.as_ref().name(),
             NativeType::StructMemberSize(m) => m.origin.name(),
+            NativeType::StructMemberSizeArithmetics(m) => m.native.name(),
         }
     }
     fn user_value_serializable(&self) -> bool {
@@ -234,6 +235,7 @@ impl CppMemoryDetail for NativeType {
             NativeType::ViewKeyReference(m) => format!("abf::ViewKeySerializer<{}, {}>", m.native_key.native_typename(), m.native_key.bytes().unwrap()),
             NativeType::ArrayDimensionReference(r) => format!("abf::LazySerializer<{}>", r.origin.as_ref().serializer_typename()),
             NativeType::StructMemberSize(m) => format!("abf::LazySerializer<{}>", m.native.serializer_typename()),
+            NativeType::StructMemberSizeArithmetics(m) => m.native.serializer_typename(),
         }
     }
     fn deserializer_typename(&self) -> String {
@@ -257,6 +259,7 @@ impl CppMemoryDetail for NativeType {
             NativeType::ViewKeyReference(m) => m.native_key.deserializer_typename(),
             NativeType::ArrayDimensionReference(r) => r.origin.deserializer_typename(),
             NativeType::StructMemberSize(m) => m.native.deserializer_typename(),
+            NativeType::StructMemberSizeArithmetics(m) => m.native.deserializer_typename(),
         }
     }
     fn native_typename(&self) -> String {
@@ -280,6 +283,7 @@ impl CppMemoryDetail for NativeType {
             NativeType::ViewKeyReference(m) => m.native_key.native_typename(),
             NativeType::ArrayDimensionReference(r) => r.origin.native_typename(),
             NativeType::StructMemberSize(m) => m.native.native_typename(),
+            NativeType::StructMemberSizeArithmetics(m) => m.native.native_typename(),
         }
     }
     fn bytes(&self) -> Option<u32> {
@@ -303,6 +307,7 @@ impl CppMemoryDetail for NativeType {
             NativeType::ViewKeyReference(m) => m.native_key.bytes(),
             NativeType::ArrayDimensionReference(r) => r.origin.bytes(),
             NativeType::StructMemberSize(m) => m.native.bytes(),
+            NativeType::StructMemberSizeArithmetics(m) => m.native.bytes(),
         }
     }
     fn default_constructible_deserializer(&self) -> bool {

@@ -1,5 +1,7 @@
 use core::panic;
 
+use self::parser::SizeArithmetics;
+
 use super::*;
 
 impl Struct {
@@ -83,7 +85,22 @@ impl Struct {
                         types.get_enum_member_value(&emr.enum_name.data, &emr.enum_member.data)?;
                     },
                     StructMemberConstant::SizeArithmetics(sa) => {
-                        todo!()
+                        let mut expect_operator = sa[0].is_operator();
+                        for s in sa {
+                            if expect_operator {
+                                if !s.is_operator() {
+                                    return Err(InterpretError::ExpectedOperator(s.code_view.clone()));
+                                }
+                            } else {
+                                if s.is_operator() {
+                                    return Err(InterpretError::ExpectedMemberSize(s.code_view.clone()));
+                                }
+                                if self.get_member_index_by_name(&s.data.as_member_reference().unwrap().member_name).is_none() {
+                                    return Err(InterpretError::UnknownStructMemberReference(s.code_view.clone()));
+                                }
+                            }
+                            expect_operator = !expect_operator;
+                        }
                     }
                 }
             }

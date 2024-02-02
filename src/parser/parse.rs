@@ -488,7 +488,7 @@ impl<'b> Parser for SizeArithmetics {
 impl<'b> Parser for StructMemberConstant {
     fn parse<'a>(&mut self, text: &CodeView) -> Result<CodeView, Option<ParseError>> {
         let mut value = Value::<usize>::default();
-        let mut size_rithmetics_repeat = Repeat::<SizeArithmetics, SizeArithmetics>::new(SizeArithmetics::Plus);
+        let mut size_rithmetics_repeat = Repeat::<DataView<SizeArithmetics>, DataView<SizeArithmetics>>::new(Default::default());
         let mut view_reference = MemberReference::new("key");
         let mut array_dimension = MemberReference::new("dimension");
         let mut size = MemberReference::new("size");

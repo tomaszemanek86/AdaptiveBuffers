@@ -5,6 +5,7 @@ mod parse;
 mod parser_data;
 mod view_type_posibility;
 mod default;
+mod size_arithmetics;
 
 use std::fmt::Debug;
 use std::str::FromStr;
@@ -112,7 +113,7 @@ pub enum StructMemberConstant {
     Usize(usize),
     Size(MemberReference),
     EnumMemberValue(EnumMemberRef),
-    SizeArithmetics(Vec<SizeArithmetics>),
+    SizeArithmetics(Vec<DataView<SizeArithmetics>>),
 }
 
 #[derive(Debug, Default, Clone)]
