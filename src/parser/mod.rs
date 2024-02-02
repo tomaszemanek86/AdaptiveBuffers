@@ -24,7 +24,8 @@ pub enum ParseError {
     NotAType(CodeView),
     RetrieveDataFailed(CodeView),
     UnknownSyntaxToken(CodeView),
-    ExpectedMemberSizeReference(CodeView)
+    ExpectedMemberSizeReferenceOrUsize(CodeView),
+    ExpectedExpression(CodeView)
 }
 
 pub trait Parser {
