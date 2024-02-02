@@ -509,20 +509,30 @@ struct PwrSrc_GetSoH2_Response {
     soh: u8
 }
 
-struct PwrSrc_GetMaxChargeCurrent {
+struct PwrSrc_GetMaxChargeCurrent_Request {
+    command: u8 = h10,
+    size: u8 = 1,
     max_charge_current: u16
 }
 
-struct PwrSrc_GetMaxChargeCurrent {
+struct PwrSrc_GetMaxChargeCurrent_Response {
     max_charge_current: u16
 }
 
-struct PwrSrc_SetMaxChargeCurrent {
+struct PwrSrc_SetMaxChargeCurrent_Request {
+    command: u8 = h11,
+    size: u8 = 1,
     max_charge_current: u16
 }
 
-struct PwrSrc_GetMaxOutCurrent {
-    max_out_current: u16
+struct PwrSrc_GetMaxOutCurrent_Request {
+    command: u8 = h12,
+    size: u8 = 1,
+    max_charge_current: u16
+}
+
+struct PwrSrc_GetMaxOutCurrent_Response {
+    max_charge_current: u16
 }
 
 enum PwrSrcChargerDiagnostics : u16 {
@@ -544,11 +554,21 @@ enum PwrSrcChargerDiagnostics : u16 {
     iin_limit_active    = b1000000000000000
 }
 
-struct PwrSrc_GetChargerDiagnostics {
+struct PwrSrc_GetChargerDiagnostics_Request {
+    command: u8 = h13,
+    size: u8 = 1
+}
+
+struct PwrSrc_GetChargerDiagnostics_Response {
     diagostics: u16
 }
 
-struct PwrSrc_GetStatistics {
+struct PwrSrc_GetStatistics_Request {
+    command: u8 = h13,
+    size: u8 = 1
+}
+
+struct PwrSrc_GetStatistics_Response {
     length: u16 = data.dimension,
     data: [u8]
 }
