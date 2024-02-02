@@ -42,7 +42,7 @@ namespace abf {
             if (!set_) {
                 throw std::runtime_error(\"Not set\");
             }
-            return data;
+            return data_;
         }
 
         void init() {

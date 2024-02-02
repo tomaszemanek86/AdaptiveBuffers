@@ -99,7 +99,7 @@ impl Struct {
                                         }
                                     },
                                     SizeArithmetics::MemberValueReference(_) => {
-                                        if self.get_member_index_by_name(&s.data.as_member_size_reference().unwrap().member_name).is_none() {
+                                        if self.get_member_index_by_name(&s.data.as_member_value_reference().unwrap().member_name).is_none() {
                                             return Err(InterpretError::UnknownStructMemberReference(s.code_view.clone()));
                                         }
                                     },
