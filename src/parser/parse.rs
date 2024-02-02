@@ -488,18 +488,16 @@ impl<'b> Parser for SizeArithmetics {
 impl<'b> Parser for StructMemberConstant {
     fn parse<'a>(&mut self, text: &CodeView) -> Result<CodeView, Option<ParseError>> {
         let mut value = Value::<usize>::default();
-        let mut size_rithmetics_repeat = Repeat::<DataView<SizeArithmetics>, DataView<SizeArithmetics>>::new(Default::default());
         let mut view_reference = MemberReference::new("key");
         let mut array_dimension = MemberReference::new("dimension");
-        let mut size = MemberReference::new("size");
         let mut enum_member_ref = EnumMemberRef::default();
-        let mut or_posibilities: [&mut dyn Parser; 6] = [
-            &mut size_rithmetics_repeat,
+        let mut size_rithmetics_repeat = Repeat::<DataView<SizeArithmetics>, DataView<SizeArithmetics>>::new(Default::default());
+        let mut or_posibilities: [&mut dyn Parser; 5] = [
             &mut view_reference, 
             &mut array_dimension, 
             &mut value, 
-            &mut size,
             &mut enum_member_ref,
+            &mut size_rithmetics_repeat,
         ];
         let mut or = Or::new(
             &mut or_posibilities,
@@ -507,12 +505,21 @@ impl<'b> Parser for StructMemberConstant {
         );
         let res: CodeView = or.parse(text)?;
         match or.index {
-            0 => *self = StructMemberConstant::SizeArithmetics(size_rithmetics_repeat.parsed),
-            1 => *self = StructMemberConstant::ViewMemberKey(view_reference),
-            2 => *self = StructMemberConstant::ArrayDimension(array_dimension),
-            3 => *self = StructMemberConstant::Usize(value.value.unwrap()),
-            4 => *self = StructMemberConstant::Size(size),
-            5 => *self = StructMemberConstant::EnumMemberValue(enum_member_ref),
+            0 => *self = StructMemberConstant::ViewMemberKey(view_reference),
+            1 => *self = StructMemberConstant::ArrayDimension(array_dimension),
+            2 => *self = StructMemberConstant::Usize(value.value.unwrap()),
+            3 => *self = StructMemberConstant::EnumMemberValue(enum_member_ref),
+            4 => {
+                if size_rithmetics_repeat.parsed.len() == 1 {
+                    if let Some(size) = size_rithmetics_repeat.parsed[0].as_member_reference() {
+                        *self = StructMemberConstant::Size(size.clone())
+                    } else {
+                        return Err(Some(ParseError::ExpectedMemberSizeReference(size_rithmetics_repeat.parsed[0].code_view.clone())))
+                    }
+                } else {
+                    *self = StructMemberConstant::SizeArithmetics(size_rithmetics_repeat.parsed)
+                }
+            },
             _ => panic!("Unexpected index"),
         }
         Ok(res)

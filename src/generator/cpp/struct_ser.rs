@@ -88,6 +88,19 @@ fn generate_serialize(m: &StructMemory, writer: &mut Writer) {
         if let Some(smr) = sm.get_struct_member_size_reference() {
             writer.write_line(&format!("{}_.set_data({}_.size());", smr.origin.name, smr.member.name));
         }
+        if let Some(sma) = sm.get_struct_member_size_arithmetics() {
+            let arithmetics = sma.arithmetics.iter()
+                .map(|it| {
+                    match it {
+                        SizeArithmetics::Plus => String::from("+"),
+                        SizeArithmetics::Minus => String::from("-"),
+                        SizeArithmetics::StructMemberSizeReference(mr) => format!("{}_.size()", mr.name)
+                    }
+                })
+                .collect::<Vec<String>>()
+                .join(" ");
+            writer.write_line(&format!("{}_.set_data({});", sm.name, arithmetics));
+        }
         writer.write_line(&format!("offset += {}_.serialize(dest + offset);", sm.as_ref().variable()));
     }
     writer.write_line("return offset;");

@@ -39,4 +39,13 @@ impl StructMemberMemory {
         }
         None
     }
+
+    pub fn get_struct_member_size_arithmetics(&self) -> Option<StructMemberSizeArithmetics> {
+        if let Some(nt) = self.memory.borrow().memory.as_native() {
+            if let Some(msa) = nt.as_struct_member_size_arithmetics() {
+                return Some(msa.clone())
+            }
+        }
+        None
+    }
 }

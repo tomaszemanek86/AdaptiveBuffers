@@ -208,6 +208,7 @@ impl CppMemoryDetail for NativeType {
             NativeType::ConstU32(_) => false,
             NativeType::ConstU64(_) => false,
             NativeType::StructMemberSize(_) => false,
+            NativeType::StructMemberSizeArithmetics(_) => false,
             _ => true
         }
     }

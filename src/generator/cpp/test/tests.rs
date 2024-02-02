@@ -141,6 +141,16 @@ fn struct_with_size_view() {
 }
 
 #[test]
+fn struct_with_size_arithmetics() {
+    generate_test(
+        "struct_with_size_arithmetics.abf", 
+        "struct_with_size_arithmetics.cpp", 
+        true, 
+        true
+    );
+}
+
+#[test]
 fn d3sb() {
     generate_test(
         "d3sb.abf", 

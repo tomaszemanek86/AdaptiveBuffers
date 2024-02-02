@@ -25,6 +25,9 @@ impl ToString for ParseError {
             ParseError::UnknownSyntaxToken(code_view) => {
                 format!("Unknown syntax token at {}", code_view.pos())
             }
+            ParseError::ExpectedMemberSizeReference(code_view) => {
+                format!("Expected member size reference at {}", code_view.pos())
+            }
         }
     }
 }
