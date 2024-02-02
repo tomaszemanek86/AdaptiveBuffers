@@ -301,18 +301,18 @@ enum PwrSrcMsgType : u8 {
 
 # GetType
 
-struct PwrSrc_Write_GetType {
-    command: u8 = PwrSrcMsgType::GetType,
-    size: u8 = 7
-}
-
-struct PwrSrc_Read_GetType {
+struct PwrSrc_GetType_Response {
     typ: u8,
     hw_rev: u8,
     fw_version: u16,
     day: u8,
     month: u8,
     year: u8
+}
+
+struct PwrSrc_GetType_Request {
+    command: u8 = h00,
+    size: u8 = 7
 }
 
 # GetStatus
@@ -361,19 +361,29 @@ enum ChargerState : u8 {
     MaintanenceMode     = b11
 }
 
-struct PwrSrc_GetStatus {
+struct PwrSrc_GetStatus_Response {
     status0: u8,
     status1: u8,
     status2: u8
 }
 
-# Get S/N
-
-struct PwrSrc_SN {
-    serial_number: u64
+struct PwrSrc_GetStatus_Request {
+    command: u8 = h01,
+    size: u8 = 3
 }
 
-struct PwrSrc_GetAnalog {
+# Get S/N
+
+struct PwrSrc_SN_Response {
+    serial_number: u32
+}
+
+struct PwrSrc_SN_Request {
+    command: u8 = h02,
+    size: u8 = 4
+}
+
+struct PwrSrc_GetAnalog_Response {
     v_sup : u16,
     v_in : u16,
     i_in : u16,
@@ -389,14 +399,24 @@ struct PwrSrc_GetAnalog {
     i_ccu : u16
 }
 
-struct PwrSrc_GetFWVersion {
+struct PwrSrc_GetAnalog_Request {
+    command: u8 = h03,
+    size: u8 = 26
+}
+
+struct PwrSrc_GetFWVersion_Response {
     version: u16,
     day: u8,
     month: u8,
     year: u8
 }
 
-struct PwrSrc_GetClock {
+struct PwrSrc_GetFWVersion_Request {
+    command: u8 = h04,
+    size: u8 = 5
+}
+
+struct PwrSrc_GetClock_Response {
     day: u8,
     month: u8,
     year: u8,
@@ -406,7 +426,14 @@ struct PwrSrc_GetClock {
     second: u8
 }
 
-struct PwrSrc_SetClock {
+struct PwrSrc_GetClock_Request {
+    command: u8 = h05,
+    size: u8 = 7
+}
+
+struct PwrSrc_SetClock_Request {
+    command: u8 = h06,
+    size: u8 = 7,
     day: u8,
     month: u8,
     year: u8,
@@ -416,40 +443,74 @@ struct PwrSrc_SetClock {
     second: u8
 }
 
-struct PwrSrc_EnableCharger {
+struct PwrSrc_EnableCharger_Request {
+    command: u8 = h07,
+    size: u8 = 1,
     enable: u8
 }
 
-struct PwrSrc_EnableOut {
+struct PwrSrc_EnableOut_Request {
+    command: u8 = h08,
+    size: u8 = 1,
     enable: u8
 }
 
-struct PwrSrc_EnableOutHC {
+struct PwrSrc_EnableOutHC_Request {
+    command: u8 = h09,
+    size: u8 = 1,
     enable: u8
 }
 
-struct PwrSrc_EnableReducer {
+struct PwrSrc_EnableReducer_Request {
+    command: u8 = h0A,
+    size: u8 = 1,
     enable: u8
 }
 
-struct PwrSrc_GetCapacity {
+struct PwrSrc_GetCapacity_Request {
+    command: u8 = h0B,
+    size: u8 = 1
+}
+
+struct PwrSrc_GetCapacity_Response {
     capacity: u8
 }
 
-struct PwrSrc_SetCapacity {
+struct PwrSrc_SetCapacity_Request {
+    command: u8 = h0C,
+    size: u8 = 1,
     capacity: u8
 }
 
-struct PwrSrc_GetSoC {
+struct PwrSrc_GetSoC_Request {
+    command: u8 = h0D,
+    size: u8 = 1
+}
+
+struct PwrSrc_GetSoC_Response {
     soc: u8
 }
 
-struct PwrSrc_GetSoH1 {
+struct PwrSrc_GetSoH1_Request {
+    command: u8 = h0E,
+    size: u8 = 1
+}
+
+struct PwrSrc_GetSoH1_Response {
     soh: u8
 }
 
-struct PwrSrc_GetSoH2 {
+struct PwrSrc_GetSoH2_Request {
+    command: u8 = h0F,
+    size: u8 = 1
+}
+
+struct PwrSrc_GetSoH2_Response {
     soh: u8
+}
+
+struct PwrSrc_GetMaxChargeCurrent {
+    max_charge_current: u16
 }
 
 struct PwrSrc_GetMaxChargeCurrent {
@@ -557,78 +618,3 @@ struct PwrSrc_SaveActualFW {
     byte0 : u8 = hE0
 }
 
-view PwrSrc_Write_MessageView {
-    PwrSrc_Write_GetType = PwrSrcMsgType::GetType
-    #PwrSrc_GetStatus = PwrSrcMsgType::GetStatus,
-    #PwrSrc_SN = PwrSrcMsgType::GetSN,
-    #PwrSrc_GetAnalog = PwrSrcMsgType::GetAnalog,
-    #PwrSrc_GetFWVersion = PwrSrcMsgType::GetFWVersion,
-    #PwrSrc_GetClock = PwrSrcMsgType::GetClock,
-    #PwrSrc_SetClock = PwrSrcMsgType::SetClock,
-    #PwrSrc_EnableCharger = PwrSrcMsgType::EnableCharger,
-    #PwrSrc_EnableOut = PwrSrcMsgType::EnableOut,
-    #PwrSrc_EnableOutHC = PwrSrcMsgType::EnableOutHC,
-    #PwrSrc_EnableReducer = PwrSrcMsgType::EnableReducer,
-    #PwrSrc_GetCapacity = PwrSrcMsgType::GetCapacity,
-    #PwrSrc_SetCapacity = PwrSrcMsgType::SetCapacity,
-    #PwrSrc_GetSoC = PwrSrcMsgType::GetSoC,
-    #PwrSrc_GetSoH1 = PwrSrcMsgType::GetSoH1,
-    #PwrSrc_GetSoH2 = PwrSrcMsgType::GetSoH2,
-    #PwrSrc_GetMaxChargeCurrent = PwrSrcMsgType::GetMaxChargeCurrent,
-    #PwrSrc_SetMaxChargeCurrent = PwrSrcMsgType::SetMaxChargeCurrent,
-    #PwrSrc_GetMaxOutCurrent = PwrSrcMsgType::GetMaxOutCurrent,
-    #PwrSrc_GetChargerDiagnostics = PwrSrcMsgType::GetChargerDiagnostics,
-    #PwrSrc_GetStatistics = PwrSrcMsgType::GetStatistics,
-    #PwrSrc_GetStatisticsLength = PwrSrcMsgType::GetStatisticsLength,
-    #PwrSrc_SetStatisticsPtrS = PwrSrcMsgType::SetStatisticsPtrS,
-    #PwrSrc_GetHistory = PwrSrcMsgType::GetHistory,
-    #PwrSrc_GetHistoryLength = PwrSrcMsgType::GetHistoryLenngth,
-    #PwrSrc_SetHistoryPtrS = PwrSrcMsgType::SetHistoryPtrS,
-    #PwrSrc_MemoryClear = PwrSrcMsgType::MemoryClear,
-    #PwrSrc_NewFirmwareData = PwrSrcMsgType::NewFirmwareData,
-    #PwrSrc_ConfirmFWBlockReception = PwrSrcMsgType::ConfirmFwBlockReception,
-    #PwrSrc_ProgramMCU = PwrSrcMsgType::ProgramMCU,
-    #PwrSrc_RevertToPreviousFW = PwrSrcMsgType::RevertToPreviousFw,
-    #PwrSrc_SaveActualFW = PwrSrcMsgType::SaveActualFw
-}
-
-view PwrSrc_MessageView {
-    PwrSrc_Read_GetType = PwrSrcMsgType::GetType
-    #PwrSrc_GetStatus = PwrSrcMsgType::GetStatus,
-    #PwrSrc_SN = PwrSrcMsgType::GetSN,
-    #PwrSrc_GetAnalog = PwrSrcMsgType::GetAnalog,
-    #PwrSrc_GetFWVersion = PwrSrcMsgType::GetFWVersion,
-    #PwrSrc_GetClock = PwrSrcMsgType::GetClock,
-    #PwrSrc_SetClock = PwrSrcMsgType::SetClock,
-    #PwrSrc_EnableCharger = PwrSrcMsgType::EnableCharger,
-    #PwrSrc_EnableOut = PwrSrcMsgType::EnableOut,
-    #PwrSrc_EnableOutHC = PwrSrcMsgType::EnableOutHC,
-    #PwrSrc_EnableReducer = PwrSrcMsgType::EnableReducer,
-    #PwrSrc_GetCapacity = PwrSrcMsgType::GetCapacity,
-    #PwrSrc_SetCapacity = PwrSrcMsgType::SetCapacity,
-    #PwrSrc_GetSoC = PwrSrcMsgType::GetSoC,
-    #PwrSrc_GetSoH1 = PwrSrcMsgType::GetSoH1,
-    #PwrSrc_GetSoH2 = PwrSrcMsgType::GetSoH2,
-    #PwrSrc_GetMaxChargeCurrent = PwrSrcMsgType::GetMaxChargeCurrent,
-    #PwrSrc_SetMaxChargeCurrent = PwrSrcMsgType::SetMaxChargeCurrent,
-    #PwrSrc_GetMaxOutCurrent = PwrSrcMsgType::GetMaxOutCurrent,
-    #PwrSrc_GetChargerDiagnostics = PwrSrcMsgType::GetChargerDiagnostics,
-    #PwrSrc_GetStatistics = PwrSrcMsgType::GetStatistics,
-    #PwrSrc_GetStatisticsLength = PwrSrcMsgType::GetStatisticsLength,
-    #PwrSrc_SetStatisticsPtrS = PwrSrcMsgType::SetStatisticsPtrS,
-    #PwrSrc_GetHistory = PwrSrcMsgType::GetHistory,
-    #PwrSrc_GetHistoryLength = PwrSrcMsgType::GetHistoryLenngth,
-    #PwrSrc_SetHistoryPtrS = PwrSrcMsgType::SetHistoryPtrS,
-    #PwrSrc_MemoryClear = PwrSrcMsgType::MemoryClear,
-    #PwrSrc_NewFirmwareData = PwrSrcMsgType::NewFirmwareData,
-    #PwrSrc_ConfirmFWBlockReception = PwrSrcMsgType::ConfirmFwBlockReception,
-    #PwrSrc_ProgramMCU = PwrSrcMsgType::ProgramMCU,
-    #PwrSrc_RevertToPreviousFW = PwrSrcMsgType::RevertToPreviousFw,
-    #PwrSrc_SaveActualFW = PwrSrcMsgType::SaveActualFw
-}
-
-struct PwrSrc_Read_Message {
-    command: u8 = message.key,
-    message_length: u8,
-    message: PwrSrc_MessageView
-}

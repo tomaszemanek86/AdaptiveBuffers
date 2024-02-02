@@ -146,7 +146,7 @@ fn d3sb() {
         "d3sb.abf", 
         "d3sb.cpp", 
         true, 
-        true
+        false
     );
 }
 
