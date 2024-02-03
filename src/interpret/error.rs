@@ -6,7 +6,7 @@ impl ToString for InterpretError {
             InterpretError::TypeContainsItself(t) => {
                 format!("Type '{}' contains itself", t.data.name.data)
             }
-            InterpretError::UnknownType(t) => format!("Unknown type '{}'", t.code_view.view()),
+            InterpretError::UnknownType(t) => format!("Unknown type '{}'", t.code_view().view()),
             InterpretError::CyclicalReference(t) => {
                 format!("Cyclical reference: {}", t.join(" -> "))
             }

@@ -352,7 +352,7 @@ impl Parser for ViewConstantValue {
             &mut or,
         ]).parse(text)?;
         if or.index == 0 {
-            *self = ViewConstantValue::Usize(DataView::new(unsigned_value.value.unwrap(), unsigned_value.code_view.clone()));
+            *self = ViewConstantValue::Usize(DataView::new(unsigned_value.value.unwrap(), unsigned_value.code_view()));
         } else {
             *self = ViewConstantValue::EnumMemberRef(enum_member_ref);
         }
@@ -398,7 +398,8 @@ impl Parser for TypVariant {
         }
         let mut word = DataView::<String>::default();
         if let Ok(res) = word.parse(text) {
-            *self = TypVariant::Unknown(DataView::new(word.data, word.code_view));
+            let cv = word.code_view();
+            *self = TypVariant::Unknown(DataView::new(word.data, cv));
             return Ok(res);
         }
         Err(Some(ParseError::NotAType(text.offset(0))))
@@ -612,7 +613,7 @@ impl Parser for EnumMemberRef {
 impl<TData: Parser + Default + Clone> Parser for DataView<TData> {
     fn parse<'a>(&mut self, text: &CodeView) -> Result<CodeView, Option<ParseError>> {
         let res = self.data.parse(text)?;
-        self.code_view = res.clone();
+        self.code_view = Some(res.clone());
         Ok(res)
     }
 }
@@ -735,6 +736,44 @@ impl Parser for Enum {
     }
 }
 
+
+impl Parser for Bits {
+    fn parse<'a>(&mut self, text: &CodeView) -> Result<CodeView, Option<ParseError>> {
+        let mut or = Token::new("|", false);
+        let mut value = DataView::<Value<usize>>::default();
+        Sequence::new(&mut [
+            &mut self.name,
+            &mut WhiteChars::new(1),
+            &mut Token::new(":", true),
+            &mut WhiteChars::default(),
+            //todo bit arithmetics
+            &mut WhiteChars::default(),
+        ])
+        .parse(text)
+    }
+}
+
+impl Parser for BitMask {
+    fn parse<'a>(&mut self, text: &CodeView) -> Result<CodeView, Option<ParseError>> {
+        let mut native = DataView::<Int>::default();
+        Sequence::new(&mut [
+            &mut Token::new("mask", false),
+            &mut WhiteChars::new(1),
+            &mut self.name,
+            &mut WhiteChars::default(),
+            &mut Token::new(":", true),
+            &mut WhiteChars::default(),
+            &mut native,
+            &mut WhiteChars::default(),
+            &mut Token::new("{", true),
+            &mut WhiteChars::default(),
+            //&mut self.bits,
+            &mut WhiteChars::default(),
+            &mut Token::new("}", true),
+        ])
+        .parse(text)
+    }
+}
 #[cfg(test)]
 mod test {
     use super::*;

@@ -144,7 +144,7 @@ impl Types {
                     }
                 }
                 return Err(InterpretError::UnknownEnumMember(
-                    e.code_view.clone()
+                    e.code_view()
                 ));
             }
         }

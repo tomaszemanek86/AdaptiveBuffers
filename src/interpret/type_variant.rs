@@ -61,10 +61,11 @@ impl TypeVariant {
                     })
                     .collect(),
             },
-            s.code_view,
+            s.code_view(),
         )))))
     }
     pub fn from_enum(e: DataView<parser::Enum>) -> Result<TypeVariant, InterpretError> {
+        let cv = e.code_view();
         let new_enum = DataView::new(
             Enum {
                 name: e.data.name.clone(),
@@ -79,12 +80,12 @@ impl TypeVariant {
                                 name: constant.name.clone(),
                                 value: constant.typ.value.unwrap(),
                             },
-                            constant.code_view,
+                            constant.code_view(),
                         )
                     })
                     .collect::<Vec<DataView<EnumConstant>>>(), // Call collect here
             },
-            e.code_view,
+            cv,
         );
         Ok(TypeVariant::Enum(Rc::new(new_enum)))
     }
@@ -103,7 +104,7 @@ impl TypeVariant {
                     })
                     .collect(),
             },
-            v.code_view,
+            v.code_view(),
         )))))
     }
     pub fn has_known_types(&self, known_types: &Vec<String>) -> bool {
@@ -135,10 +136,10 @@ impl TypeVariant {
     }
     pub fn code_view(&self) -> CodeView {
         match self {
-            TypeVariant::Struct(s) => s.borrow().code_view.clone(),
-            TypeVariant::View(v) => v.borrow().code_view.clone(),
-            TypeVariant::Enum(e) => e.code_view.clone(),
-            TypeVariant::Int(i) => i.code_view.clone(),
+            TypeVariant::Struct(s) => s.borrow().code_view(),
+            TypeVariant::View(v) => v.borrow().code_view(),
+            TypeVariant::Enum(e) => e.code_view(),
+            TypeVariant::Int(i) => i.code_view(),
             TypeVariant::Unknown(_unknown) => panic!("cannot get code view for unknown"),
         }
     }

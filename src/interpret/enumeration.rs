@@ -11,7 +11,7 @@ impl Enum {
                 != 1
             {
                 return Err(InterpretError::EnumConstantNotUnique(
-                    constant.code_view.clone(),
+                    constant.code_view(),
                 ));
             }
             if self
@@ -22,12 +22,12 @@ impl Enum {
                 != 1
             {
                 return Err(InterpretError::EnumConstantValueNotUnique(
-                    constant.code_view.clone(),
+                    constant.code_view(),
                 ));
             }
             if !self.underlaying_int.check_value(constant.value) {
                 return Err(InterpretError::EnumConstantValueNotFitting(
-                    constant.code_view.clone(),
+                    constant.code_view(),
                 ));
             }
         }

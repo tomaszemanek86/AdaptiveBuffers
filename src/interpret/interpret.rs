@@ -17,8 +17,8 @@ impl Interpreter {
                 if self.big_endian.is_some() {
                      return Err(
                         InterpretError::EndianOverrided(
-                            self.big_endian.as_ref().unwrap().code_view.clone(),
-                            e.code_view.clone()
+                            self.big_endian.as_ref().unwrap().code_view(),
+                            e.code_view()
                         )
                     )
                 }

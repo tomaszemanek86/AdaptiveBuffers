@@ -24,7 +24,11 @@ impl<T: Default + Clone> AsRef<T> for DataView<T> {
 
 impl<T: Default + Clone> DataView<T> {
     pub fn new(data: T, code_view: CodeView) -> Self {
-        Self { data, code_view }
+        Self { data: data, code_view: Some(code_view) }
+    }
+
+    pub fn new_empty(data: T) -> Self {
+        Self { data: data, code_view: None }
     }
 
     pub fn convert<To: Default + Clone, FnConvert>(self, convert: FnConvert) -> DataView<To>
@@ -34,5 +38,9 @@ impl<T: Default + Clone> DataView<T> {
             code_view: self.code_view,
             data: convert(self.data)
         }
+    }
+
+    pub fn code_view(&self) -> CodeView {
+        self.code_view.as_ref().unwrap().clone()
     }
 }

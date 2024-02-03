@@ -29,7 +29,7 @@ impl Struct {
             if let Some(c) = &member.constant {
                 if !member.typ.typ.is_int() {
                     return Err(InterpretError::StructMemberConstantCanBeApliedOnlyForInt(
-                        member.name.code_view.clone(),
+                        member.name.code_view(),
                     ));
                 }
                 match c {
@@ -38,10 +38,10 @@ impl Struct {
                         if let Some(t) = types.get_type(&mr.member_name.data)? {
                             if let Some(i) = self.get_member_index_by_name(&mr.member_name.data) {
                                 if !self.members[i].typ.typ.is_view() {
-                                    return Err(InterpretError::MemberReferenceDoesntPointToView(mr.member_name.code_view.clone()))
+                                    return Err(InterpretError::MemberReferenceDoesntPointToView(mr.member_name.code_view()))
                                 }
                             } else {
-                                return Err(InterpretError::UnknownStructMemberReference(mr.member_name.code_view.clone()));
+                                return Err(InterpretError::UnknownStructMemberReference(mr.member_name.code_view()));
                             }
                             if let Some(view) = t.as_view() {
                                 // find max value of view constant
@@ -59,26 +59,26 @@ impl Struct {
                                 }
                                 if member.typ.typ.as_int().unwrap().max_value() < max_value {
                                     return Err(InterpretError::ViewReferenceTypeTooSmall(
-                                        member.name.code_view.clone(),
+                                        member.name.code_view(),
                                     ));
                                 }
                             } else {
-                                return Err(InterpretError::UnknownStructMemberReference(mr.member_name.code_view.clone()));
+                                return Err(InterpretError::UnknownStructMemberReference(mr.member_name.code_view()));
                             }
                         }
                     },
                     StructMemberConstant::ArrayDimension(mr) => {
                         if let Some(i) = self.get_member_index_by_name(&mr.member_name.data) {
                             if self.members[i].typ.array_size.is_no() {
-                                return Err(InterpretError::MemberReferenceDoesntPointToArray(mr.member_name.code_view.clone()))
+                                return Err(InterpretError::MemberReferenceDoesntPointToArray(mr.member_name.code_view()))
                             }
                         } else {
-                            return Err(InterpretError::UnknownStructMemberReference(mr.member_name.code_view.clone()));
+                            return Err(InterpretError::UnknownStructMemberReference(mr.member_name.code_view()));
                         }
                     },
                     StructMemberConstant::Size(mr) => {
                         if self.get_member_index_by_name(&mr.member_name.data).is_none() {
-                            return Err(InterpretError::UnknownStructMemberReference(mr.member_name.code_view.clone()));
+                            return Err(InterpretError::UnknownStructMemberReference(mr.member_name.code_view()));
                         }
                     },
                     StructMemberConstant::EnumMemberValue(emr) => {
@@ -89,22 +89,22 @@ impl Struct {
                         for s in sa {
                             if expect_operator {
                                 if !s.is_operator() {
-                                    return Err(InterpretError::ExpectedOperator(s.code_view.clone()));
+                                    return Err(InterpretError::ExpectedOperator(s.code_view()));
                                 }
                             } else {
                                 match &s.data {
                                     SizeArithmetics::MemberSizeReference(_) => {
                                         if self.get_member_index_by_name(&s.data.as_member_size_reference().unwrap().member_name).is_none() {
-                                            return Err(InterpretError::UnknownStructMemberReference(s.code_view.clone()));
+                                            return Err(InterpretError::UnknownStructMemberReference(s.code_view()));
                                         }
                                     },
                                     SizeArithmetics::MemberValueReference(_) => {
                                         if self.get_member_index_by_name(&s.data.as_member_value_reference().unwrap().member_name).is_none() {
-                                            return Err(InterpretError::UnknownStructMemberReference(s.code_view.clone()));
+                                            return Err(InterpretError::UnknownStructMemberReference(s.code_view()));
                                         }
                                     },
                                     SizeArithmetics::Plus | SizeArithmetics::Minus => 
-                                        return Err(InterpretError::ExpectedMemberSize(s.code_view.clone())),
+                                        return Err(InterpretError::ExpectedMemberSize(s.code_view())),
                                     _ => ()
                                 }
                                 

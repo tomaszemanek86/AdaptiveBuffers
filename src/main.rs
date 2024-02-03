@@ -15,6 +15,7 @@ mod view_posibility_constant_memory;
 mod memory_type;
 mod enum_memory;
 mod array_size;
+mod bit_mask;
 
 use clap::Parser;
 use interpret::InterpretError;
@@ -30,7 +31,7 @@ pub struct CodeView {
 #[derive(Default, Debug, Clone)]
 pub struct DataView<TData: Default + Clone> {
     pub data: TData,
-    pub code_view: CodeView,
+    pub code_view: Option<CodeView>,
 }
 
 #[derive(Default, Debug, PartialEq, Clone)]
@@ -153,6 +154,19 @@ pub struct StructMemberSizeArithmetics {
     arithmetics: Vec<SizeArithmetics>
 }
 
+#[derive(Debug, Clone)]
+struct Bits {
+    name: String,
+    bits: Vec<u8>
+}
+
+#[derive(Debug, Clone)]
+pub struct BitMask {
+    name: String,
+    native: NativeType,
+    bits: Vec<Bits>
+}
+
 #[derive(Debug, Clone, variation::Variation)]
 pub enum NativeType {
     Bool,
@@ -170,7 +184,7 @@ pub enum NativeType {
     I16,
     I32,
     I64,
-    Unknown,
+    Unknown(DataView<Int>),
     ViewKeyReference(ViewKeyReference),
     ArrayDimensionReference(ArrayDimensionReference),
     StructMemberSize(StructMemberSizeReference),

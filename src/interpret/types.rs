@@ -14,7 +14,7 @@ impl Types {
     }
     pub fn put_view(&mut self, typ: DataView<parser::View>) -> Result<(), InterpretError> {
         if self.types.contains_key(typ.name.as_str()) {
-            return Err(InterpretError::ViewAlreadyExists(typ.code_view.clone()));
+            return Err(InterpretError::ViewAlreadyExists(typ.code_view()));
         }
         self.types.insert(typ.name.clone(), TypeVariant::from_view(typ)?);
         Ok(())

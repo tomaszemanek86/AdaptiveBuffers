@@ -78,12 +78,12 @@ impl AsMemory for Struct {
                         let value = others
                                 .iter()
                                 .find(|it: &&MemoryDeclaration| it.name == emv.enum_name.data)
-                                .ok_or_else(|| InterpretError::UnknownEnum(emv.enum_name.code_view.clone()))?
+                                .ok_or_else(|| InterpretError::UnknownEnum(emv.enum_name.code_view().clone()))?
                                 .memory.memory
                                 .as_enum().unwrap()
                                 .constants
                                 .iter().find(|it| it.name == emv.enum_member.data)
-                                .ok_or_else(|| InterpretError::UnknownEnumMember(emv.enum_member.code_view.clone()))?
+                                .ok_or_else(|| InterpretError::UnknownEnumMember(emv.enum_member.code_view().clone()))?
                                 .value;
                         if let Some(nm) = f.memory.borrow_mut().memory.as_native_mut() {
                             nm.make_const(value).map_err(|e| InterpretError::GenericError(e))?
@@ -98,7 +98,7 @@ impl AsMemory for Struct {
                                 parser::SizeArithmetics::MemberValueReference(mr) => {
                                     let index = self.get_member_index_by_name(&mr.member_name.data).unwrap();
                                     if !structure.borrow().fields[index].memory.borrow().memory.can_get_unsigned_value() {
-                                        return Err(InterpretError::MemberValueNoUnsigned(it.code_view.clone()))
+                                        return Err(InterpretError::MemberValueNoUnsigned(it.code_view().clone()))
                                     }
                                 },
                                 _ => continue
@@ -137,7 +137,7 @@ impl AsMemory for Struct {
                                 .unwrap()
                                 .as_view_reference_key()
                                 .unwrap()
-                                .member_name.code_view.clone()
+                                .member_name.code_view()
                             ));
                     }
                 }
@@ -203,11 +203,11 @@ impl AsMemory for View {
                                 if let Some(v) = constant.as_enum_member_ref() {
                                     let md = others.iter().find(|md| md.name == v.enum_name.data);
                                     if md.is_none() {
-                                        return Err(InterpretError::UnknownEnum(v.enum_name.code_view.clone()));
+                                        return Err(InterpretError::UnknownEnum(v.enum_name.code_view()));
                                     }
                                     ViewPosibilityConstantMemory::EnumMemberRef(EnumMemberRefMemory {
                                         enum_typ: md.unwrap().memory.memory.as_enum().unwrap().clone(),
-                                        index: md.unwrap().memory.memory.as_enum().unwrap().get_index(&v.enum_member.code_view)?
+                                        index: md.unwrap().memory.memory.as_enum().unwrap().get_index(&v.enum_member.code_view())?
                                     })
                                 } else if let Some(v) = constant.as_usize() {
                                     ViewPosibilityConstantMemory::Usize(v.data)

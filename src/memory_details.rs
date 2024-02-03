@@ -153,7 +153,7 @@ impl MemoryDetails for NativeType {
             Self::I16 => Some(2),
             Self::I32 => Some(4),
             Self::I64 => Some(8),
-            Self::Unknown => None,
+            Self::Unknown(_) => None,
             Self::ViewKeyReference(mr) => mr.native_key.exact_size(),
             Self::ArrayDimensionReference(mr) => mr.origin.exact_size(),
             Self::StructMemberSize(m) => m.native.exact_size(),

@@ -44,7 +44,7 @@ impl NativeType {
             Self::ConstU24(_) => 3,
             Self::ConstU32(_) => 4,
             Self::ConstU64(_) => 8,
-            Self::Unknown => panic!("cannot get bytes from unknow native type"),
+            Self::Unknown(_) => panic!("cannot get bytes from unknow native type"),
             Self::ViewKeyReference(mr) => mr.key.memory.borrow().memory.as_native().unwrap().size(),
             Self::ArrayDimensionReference(mr) => mr.size.memory.borrow().memory.as_native().unwrap().size(),
             Self::StructMemberSize(m) => m.origin.memory.borrow().memory.as_native().unwrap().size(),
@@ -59,7 +59,7 @@ impl NativeType {
             Self::U24 => *self = Self::ConstU24(u32::try_from(value).or(Err(format!("Cannot convert {} to u24", value)))?),
             Self::U32 => *self = Self::ConstU32(u32::try_from(value).or(Err(format!("Cannot convert {} to u32", value)))?),
             Self::U64 => *self = Self::ConstU64(u64::try_from(value).or(Err(format!("Cannot convert {} to u64", value)))?),
-            Self::Unknown => return Err("unexpcted".into()),
+            Self::Unknown(_) => return Err("unexpcted".into()),
             _ => panic!("cannot make const")
         }
         Ok(())
