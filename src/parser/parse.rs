@@ -767,11 +767,10 @@ impl Parser for Bits {
         let mut artihmetics = Repeat::<BitArithmetic, BitArithmetic>::new(BitArithmetic::default());
         let res = Sequence::new(&mut [
             &mut self.name,
-            &mut WhiteChars::new(1),
+            &mut WhiteChars::default(),
             &mut Token::new(":", true),
             &mut WhiteChars::default(),
-            &mut artihmetics,
-            &mut WhiteChars::default(),
+            &mut artihmetics
         ])
         .parse(text)?;
         self.bits = artihmetics.parsed;
@@ -1263,11 +1262,11 @@ mod test {
         assert_eq!(parser.name, "Numbers");
         assert_eq!(parser.bits.len(), 2);
         assert_eq!(parser.bits[0].bits.len(), 1);
-        assert_eq!(parser.bits[1].bits.len(), 3);
+        assert_eq!(parser.bits[1].bits.len(), 4);
         assert!(parser.bits[0].bits[0].is_value());
         assert!(parser.bits[1].bits[0].is_value());
         assert!(parser.bits[1].bits[1].is_and());
         assert!(parser.bits[1].bits[2].is_not());
-        assert!(parser.bits[1].bits[2].is_value());
+        assert!(parser.bits[1].bits[3].is_value());
     }
 }
