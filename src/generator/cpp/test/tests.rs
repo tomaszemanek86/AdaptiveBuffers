@@ -151,6 +151,16 @@ fn struct_with_size_arithmetics() {
 }
 
 #[test]
+fn mask() {
+    generate_test(
+        "mask.abf", 
+        "mask.cpp", 
+        true, 
+        true
+    );
+}
+
+#[test]
 fn d3sb() {
     generate_test(
         "d3sb.abf", 
