@@ -33,6 +33,7 @@ pub enum InterpretError {
     UnknownEnumMember(CodeView),
     UnknownEnum(CodeView),
     ViewAlreadyExists(CodeView),
+    BitMaskAlreadyExists(String, CodeView),
     ViewItemNotUniqueWithinView(CodeView),
     ViewReferenceKeyIsTooBig(CodeView),
     ViewEmpty(String),
@@ -44,13 +45,15 @@ pub enum InterpretError {
     CannotAsignUsizeCstToNonUnsignedMemory(usize),
     ExpectedOperator(CodeView),
     ExpectedMemberSize(CodeView),
-    MemberValueNoUnsigned(CodeView)
+    MemberValueNoUnsigned(CodeView),
+    InvalidBitExpression(CodeView)
 }
 
 #[derive(variation::Variation, Clone)]
 pub enum TypeVariant {
     Struct(Rc<RefCell<DataView<Struct>>>),
     Enum(Rc<DataView<Enum>>),
+    BitMask(Rc<DataView<BitMask>>),
     View(Rc<RefCell<DataView<View>>>),
     Int(DataView<Int>),
     Unknown(DataView<String>),

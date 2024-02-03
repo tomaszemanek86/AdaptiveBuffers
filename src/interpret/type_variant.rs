@@ -107,12 +107,16 @@ impl TypeVariant {
             v.code_view(),
         )))))
     }
+    pub fn from_bit_mask(v: DataView<BitMask>) -> Result<TypeVariant, InterpretError> {
+        Ok(TypeVariant::BitMask(Rc::new(v)))
+    }
     pub fn has_known_types(&self, known_types: &Vec<String>) -> bool {
         match self {
             TypeVariant::Struct(structure) => structure.borrow().has_known_types(known_types),
             TypeVariant::View(view) => view.borrow().has_known_types(known_types),
             TypeVariant::Enum(_) => return true,
             TypeVariant::Int(_) => return true,
+            TypeVariant::BitMask(_) => return true,
             TypeVariant::Unknown(_) => panic!("unexpected unknoqn type"),
         }
     }
@@ -122,6 +126,7 @@ impl TypeVariant {
             TypeVariant::Enum(e) => e.check_type(),
             TypeVariant::View(v) => v.borrow_mut().check_type(types),
             TypeVariant::Int(_i) => Ok(()),
+            TypeVariant::BitMask(b) => b.check_type(),
             TypeVariant::Unknown(_unknown) => panic!("cannot check type for unknown"),
         }
     }

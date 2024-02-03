@@ -63,7 +63,9 @@ impl ToString for InterpretError {
             InterpretError::CannotAsignUsizeCstToNonUnsignedMemory(value) => format!("Cannot asign {} to non unsigned memory", value),
             InterpretError::ExpectedOperator(cv) => format!("expected operator + or - in {}", cv.pos()),
             InterpretError::ExpectedMemberSize(cv) => format!("expected member size reference (e.g. any_valid_member.size) at {}", cv.pos()),
-            InterpretError::MemberValueNoUnsigned(cv) => format!("not unsigned member nor unsigned constant at {}", cv.pos())
+            InterpretError::MemberValueNoUnsigned(cv) => format!("not unsigned member nor unsigned constant at {}", cv.pos()),
+            InterpretError::BitMaskAlreadyExists(name, cv) => format!("mask name '{}' not unique at {}", name, cv.pos()),
+            InterpretError::InvalidBitExpression(CodeView)
         }
     }
 }

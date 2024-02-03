@@ -19,6 +19,13 @@ impl Types {
         self.types.insert(typ.name.clone(), TypeVariant::from_view(typ)?);
         Ok(())
     }
+    pub fn put_bit_mask(&mut self, typ: DataView<BitMask>) -> Result<(), InterpretError> {
+        if self.types.contains_key(typ.name.as_str()) {
+            return Err(InterpretError::BitMaskAlreadyExists(typ.name.clone(), typ.code_view()));
+        }
+        self.types.insert(typ.name.clone(), TypeVariant::from_bit_mask(typ)?);
+        Ok(())
+    }
     pub fn resolve_unknown_types(self) -> Result<Self, InterpretError> {
         for (_name, t) in &self.types {
             t.resolve_unknown_types(&self)?

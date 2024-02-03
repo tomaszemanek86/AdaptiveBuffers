@@ -193,6 +193,7 @@ pub enum SyntaxToken {
     Struct(DataView<Struct>),
     View(DataView<View>),
     Enum(DataView<Enum>),
+    BitMask(DataView<BitMask>),
 }
 
 pub fn parse(text: String) -> Result<Vec<SyntaxToken>, ParseError> {

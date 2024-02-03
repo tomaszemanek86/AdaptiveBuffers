@@ -685,6 +685,19 @@ impl Parser for Option<SyntaxToken> {
             }
         }
 
+        let mut parser = DataView::<BitMask>::default();
+        match parser.parse(text) {
+            Ok(res) => {
+                *self = Some(SyntaxToken::BitMask(parser));
+                return Ok(res);
+            }
+            Err(e) => {
+                if e.is_some() {
+                    return Err(e);
+                }
+            }
+        }
+
         let mut parser = WhiteChars::new(1);
         match parser.parse(text) {
             Ok(res) => {
@@ -764,7 +777,7 @@ impl Parser for BitArithmetic {
 
 impl Parser for Bits {
     fn parse<'a>(&mut self, text: &CodeView) -> Result<CodeView, Option<ParseError>> {
-        let mut artihmetics = Repeat::<BitArithmetic, BitArithmetic>::new(BitArithmetic::default());
+        let mut artihmetics = Repeat::<DataView<BitArithmetic>, DataView<BitArithmetic>>::new(Default::default());
         let res = Sequence::new(&mut [
             &mut self.name,
             &mut WhiteChars::default(),

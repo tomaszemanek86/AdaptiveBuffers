@@ -164,7 +164,7 @@ enum BitArithmetic {
 #[derive(Debug, Clone, Default)]
 struct Bits {
     name: String,
-    bits: Vec<BitArithmetic>
+    bits: Vec<DataView<BitArithmetic>>
 }
 
 #[derive(Debug, Clone, Default)]

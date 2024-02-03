@@ -5,6 +5,7 @@ impl Interpreter {
         match token {
             parser::SyntaxToken::Struct(t) => self.types.put_struct(t)?,
             parser::SyntaxToken::View(t) => self.types.put_view(t)?,
+            parser::SyntaxToken::BitMask(t) => self.types.put_bit_mask(t)?,
             parser::SyntaxToken::Enum(t) => self.types.put_enum(t)?,
             parser::SyntaxToken::RequiredVersion(v) => {
                 self.required_version = Some([
