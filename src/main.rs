@@ -154,13 +154,20 @@ pub struct StructMemberSizeArithmetics {
     arithmetics: Vec<SizeArithmetics>
 }
 
-#[derive(Debug, Clone)]
-struct Bits {
-    name: String,
-    bits: Vec<u8>
+#[derive(Debug, Clone, variation::Variation)]
+enum BitArithmetic {
+    Not,
+    And,
+    Value(usize),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
+struct Bits {
+    name: String,
+    bits: Vec<BitArithmetic>
+}
+
+#[derive(Debug, Clone, Default)]
 pub struct BitMask {
     name: String,
     native: NativeType,

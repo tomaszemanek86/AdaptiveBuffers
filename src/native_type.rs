@@ -76,3 +76,9 @@ impl NativeType {
         }
     }
 }
+
+impl Default for NativeType {
+    fn default() -> Self {
+        Self::Bool
+    }
+}

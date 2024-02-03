@@ -6,6 +6,7 @@ mod parser_data;
 mod view_type_posibility;
 mod default;
 mod size_arithmetics;
+mod value;
 
 use std::fmt::Debug;
 use std::str::FromStr;

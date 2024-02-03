@@ -736,27 +736,63 @@ impl Parser for Enum {
     }
 }
 
+impl Parser for BitArithmetic {
+    fn parse<'a>(&mut self, text: &CodeView) -> Result<CodeView, Option<ParseError>> {
+        let mut and = Token::new("&", false);
+        let mut not = Token::new("~", false);
+        let mut value = DataView::<Value<usize>>::default();
+        let mut one_of_artihmetics_expr_arr: [&mut dyn Parser; 3] = [
+            &mut and, 
+            &mut not, 
+            &mut value
+        ];
+        let mut one_of_artihmetics_expr = Or::new(&mut one_of_artihmetics_expr_arr, "invalid bit arithmetic expression");
+        let res = Sequence::new(&mut [
+            &mut WhiteChars::default(),
+            &mut one_of_artihmetics_expr,
+            &mut WhiteChars::default()
+        ]).parse(text)?;
+        match one_of_artihmetics_expr.index {
+            0 => *self = BitArithmetic::And,
+            1 => *self = BitArithmetic::Not,
+            2 => *self = BitArithmetic::Value(value.data.value.unwrap()),
+            _ => panic!("out of range")
+        }
+        Ok(res)
+    }
+}
 
 impl Parser for Bits {
     fn parse<'a>(&mut self, text: &CodeView) -> Result<CodeView, Option<ParseError>> {
-        let mut or = Token::new("|", false);
-        let mut value = DataView::<Value<usize>>::default();
-        Sequence::new(&mut [
+        let mut artihmetics = Repeat::<BitArithmetic, BitArithmetic>::new(BitArithmetic::default());
+        let res = Sequence::new(&mut [
             &mut self.name,
             &mut WhiteChars::new(1),
             &mut Token::new(":", true),
             &mut WhiteChars::default(),
-            //todo bit arithmetics
+            &mut artihmetics,
             &mut WhiteChars::default(),
         ])
-        .parse(text)
+        .parse(text)?;
+        self.bits = artihmetics.parsed;
+        Ok(res)
     }
 }
 
 impl Parser for BitMask {
     fn parse<'a>(&mut self, text: &CodeView) -> Result<CodeView, Option<ParseError>> {
+        let mut white_chars_1 = WhiteChars::default();
+        let mut white_chars_2 = WhiteChars::default();
+        let mut coma = Token::new(",", false);
+        let mut separator_parsers: [&mut dyn Parser; 3] = [
+            &mut white_chars_1,
+            &mut coma,
+            &mut white_chars_2
+        ];
+        let mut separator = Sequence::new(&mut separator_parsers);
+        let mut bit_masks: Separated<'_, Bits, Bits> = Separated::<Bits, Bits>::new(Bits::default(), &mut separator);
         let mut native = DataView::<Int>::default();
-        Sequence::new(&mut [
+        let res = Sequence::new(&mut [
             &mut Token::new("mask", false),
             &mut WhiteChars::new(1),
             &mut self.name,
@@ -767,13 +803,17 @@ impl Parser for BitMask {
             &mut WhiteChars::default(),
             &mut Token::new("{", true),
             &mut WhiteChars::default(),
-            //&mut self.bits,
+            &mut bit_masks,
             &mut WhiteChars::default(),
             &mut Token::new("}", true),
         ])
-        .parse(text)
+        .parse(text)?;
+    self.native = NativeType::Unknown(native);
+        self.bits = bit_masks.data;
+        Ok(res)
     }
 }
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -1161,5 +1201,73 @@ mod test {
         assert!(sa[7].is_usize());
         assert!(sa[8].is_minus());
         assert!(sa[9].is_member_value_reference());
+    }
+
+    #[test]
+    fn bits_arithetics_and() {
+        let mut parser = BitArithmetic::default();
+        let res = parser.parse(&CodeView::from("&"));
+        assert_eq!(res.is_ok(), true);
+        assert!(parser.is_and());
+    }
+
+    #[test]
+    fn bits_arithetics_not() {
+        let mut parser = BitArithmetic::default();
+        let res = parser.parse(&CodeView::from("~"));
+        assert_eq!(res.is_ok(), true);
+        assert!(parser.is_not());
+    }
+
+    #[test]
+    fn bits_arithetics_value() {
+        let mut parser = BitArithmetic::default();
+        let res = parser.parse(&CodeView::from("B1"));
+        assert_eq!(res.is_ok(), true);
+        assert!(parser.is_value());
+    }
+
+    #[test]
+    fn bits() {
+        let mut parser = Bits::default();
+        let res = parser.parse(&CodeView::from("abc : B1 & ~B3"));
+        assert_eq!(res.is_ok(), true);
+        assert_eq!(parser.name, "abc");
+        assert_eq!(parser.bits.len(), 4);
+        assert!(parser.bits[0].is_value());
+        assert_eq!(*parser.bits[0].as_value().unwrap(), 2);
+        assert!(parser.bits[1].is_and());
+        assert!(parser.bits[2].is_not());
+        assert!(parser.bits[3].is_value());
+        assert_eq!(*parser.bits[3].as_value().unwrap(), 8);
+    }
+
+    #[test]
+    fn bit_mask_1() {
+        let mut parser = BitMask::default();
+        let res = parser.parse(&CodeView::from("mask XX : u16 {}"));
+        assert_eq!(res.is_ok(), true);
+        assert_eq!(parser.name, "XX");
+        assert!(parser.native.is_unknown());
+        assert_eq!(parser.bits.len(), 0);
+    }
+
+    #[test]
+    fn bit_mask_2() {
+        let mut parser = BitMask::default();
+        let res = parser.parse(&CodeView::from("mask Numbers : u8 {
+                ten: B0,
+                twenty: B6 & ~B1
+            }"));
+        assert_eq!(res.is_ok(), true);
+        assert_eq!(parser.name, "Numbers");
+        assert_eq!(parser.bits.len(), 2);
+        assert_eq!(parser.bits[0].bits.len(), 1);
+        assert_eq!(parser.bits[1].bits.len(), 3);
+        assert!(parser.bits[0].bits[0].is_value());
+        assert!(parser.bits[1].bits[0].is_value());
+        assert!(parser.bits[1].bits[1].is_and());
+        assert!(parser.bits[1].bits[2].is_not());
+        assert!(parser.bits[1].bits[2].is_value());
     }
 }

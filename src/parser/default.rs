@@ -8,6 +8,12 @@ impl Default for StructMemberConstant {
 
 impl Default for SizeArithmetics {
     fn default() -> Self {
-        SizeArithmetics::Plus
+        SizeArithmetics::Usize(0)
+    }
+}
+
+impl Default for BitArithmetic {
+    fn default() -> Self {
+        BitArithmetic::Value(0)
     }
 }
