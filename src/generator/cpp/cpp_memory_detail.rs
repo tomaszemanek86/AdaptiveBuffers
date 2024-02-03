@@ -105,6 +105,7 @@ impl CppMemoryDetail for MemoryType {
             MemoryType::Struct(m) => m.borrow().name(),
             MemoryType::View(m) => m.name(),
             MemoryType::Enum(m) => m.name(),
+            MemoryType::BitMask(m) => m.name(),
         }
     }
 
@@ -114,6 +115,7 @@ impl CppMemoryDetail for MemoryType {
             MemoryType::Struct(m) => m.borrow().user_value_serializable(),
             MemoryType::View(m) => m.user_value_serializable(),
             MemoryType::Enum(m) => m.user_value_serializable(),
+            MemoryType::BitMask(m) => m.user_value_serializable(),
         }
     }
 
@@ -123,6 +125,7 @@ impl CppMemoryDetail for MemoryType {
             MemoryType::Struct(m) => m.borrow().directly_deserializable(),
             MemoryType::View(m) => m.directly_deserializable(),
             MemoryType::Enum(m) => m.directly_deserializable(),
+            MemoryType::BitMask(m) => m.directly_deserializable(),
         }
     }
 
@@ -132,6 +135,7 @@ impl CppMemoryDetail for MemoryType {
             MemoryType::Struct(m) => m.borrow().serializer_typename(),
             MemoryType::View(m) => m.serializer_typename(),
             MemoryType::Enum(m) => m.serializer_typename(),
+            MemoryType::BitMask(m) => m.serializer_typename(),
         }
     }
 
@@ -141,6 +145,7 @@ impl CppMemoryDetail for MemoryType {
             MemoryType::Struct(m) => m.borrow().deserializer_typename(),
             MemoryType::View(m) => m.deserializer_typename(),
             MemoryType::Enum(m) => m.deserializer_typename(),
+            MemoryType::BitMask(m) => m.deserializer_typename(),
         }
     }
 
@@ -150,6 +155,7 @@ impl CppMemoryDetail for MemoryType {
             MemoryType::Struct(m) => m.borrow().native_typename(),
             MemoryType::View(m) => m.native_typename(),
             MemoryType::Enum(m) => m.native_typename(),
+            MemoryType::BitMask(m) => m.native_typename(),
         }
     }
 
@@ -159,6 +165,7 @@ impl CppMemoryDetail for MemoryType {
             MemoryType::Struct(m) => m.borrow().bytes(),
             MemoryType::View(m) => m.bytes(),
             MemoryType::Enum(m) => m.bytes(),
+            MemoryType::BitMask(m) => m.bytes(),
         }
     }
 
@@ -168,6 +175,7 @@ impl CppMemoryDetail for MemoryType {
             MemoryType::Struct(m) => m.borrow().default_constructible_deserializer(),
             MemoryType::View(m) => m.default_constructible_deserializer(),
             MemoryType::Enum(m) => m.default_constructible_deserializer(),
+            MemoryType::BitMask(m) => m.default_constructible_deserializer(),
         }
     }
 }
@@ -474,5 +482,39 @@ impl CppMemoryDetail for ViewPosibilityMemory {
     }
     fn default_constructible_deserializer(&self) -> bool {
         self.memory.default_constructible_deserializer()
+    }
+}
+
+impl CppMemoryDetail for BitMask {
+    fn name(&self) -> String {
+        self.name.clone()
+    }
+
+    fn user_value_serializable(&self) -> bool {
+        true
+    }
+
+    fn directly_deserializable(&self) -> bool {
+        true
+    }
+
+    fn serializer_typename(&self) -> String {
+        format!("{}Ser", self.name)
+    }
+
+    fn deserializer_typename(&self) -> String {
+        format!("{}De", self.name)
+    }
+
+    fn native_typename(&self) -> String {
+        self.native.native_typename()
+    }
+
+    fn bytes(&self) -> Option<u32> {
+        self.native.bytes()
+    }
+
+    fn default_constructible_deserializer(&self) -> bool {
+        self.native.default_constructible_deserializer()
     }
 }

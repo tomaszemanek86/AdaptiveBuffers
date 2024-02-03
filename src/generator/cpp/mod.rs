@@ -12,6 +12,9 @@ mod struct_de;
 mod view_ser;
 mod view_de;
 mod abf_core;
+mod bit_mask_ser;
+mod bit_mask_de;
+
 #[cfg(test)]
 mod test;
 
@@ -75,6 +78,10 @@ pub fn generate(m: &Vec<MemoryDeclaration>, byte_swap: bool, args: &Args) {
                 enum_type::generate_enum_type(e, &mut writer);
                 enum_ser::generate_enum_serializer(e, &mut writer);
                 enum_de::generate_enum_deserializer(e, &mut writer);
+            },
+            MemoryType::BitMask(b) => {
+                bit_mask_ser::generate_bit_mask_serializer(&b, &mut writer);
+                bit_mask_de::generate_bit_mask_deserializer(&b, &mut writer);
             },
         }
     }

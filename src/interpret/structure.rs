@@ -151,6 +151,7 @@ impl Struct {
                     TypeVariant::Enum(_) => true,
                     TypeVariant::View(t) => known_types.contains(&t.borrow().name),
                     TypeVariant::Int(_) => return true,
+                    TypeVariant::BitMask(_) => return true,
                     TypeVariant::Unknown(_) => panic!("unexpected unknown type"),
                 }
             })

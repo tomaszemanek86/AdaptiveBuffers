@@ -35,6 +35,7 @@ impl View {
                         t.typ.typ.is_view() && t.typ.typ.as_view().unwrap().borrow().name == v.borrow().name
                     }
                     TypeVariant::Enum(e) => t.typ.typ.is_enum() && t.typ.typ.as_enum().unwrap().name == e.name,
+                    TypeVariant::BitMask(b) => t.typ.typ.is_enum() && t.typ.typ.as_bit_mask().unwrap().name == b.name,
                     TypeVariant::Unknown(_) => panic!("cannot check type for unknown"),
                 })
                 .count();
@@ -77,6 +78,7 @@ impl View {
                 TypeVariant::Enum(_) => true,
                 TypeVariant::View(t) => known_types.contains(&t.borrow().name),
                 TypeVariant::Int(_) => true,
+                TypeVariant::BitMask(_) => true,
                 TypeVariant::Unknown(ref _u) => panic!("unexpected unknown type"),
             })
     }

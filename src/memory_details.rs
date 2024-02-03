@@ -95,6 +95,7 @@ impl MemoryDetails for MemoryType {
             MemoryType::Enum(e) => e.exact_size(),
             MemoryType::View(v) => v.exact_size(),
             MemoryType::Native(n) => n.exact_size(),
+            MemoryType::BitMask(b) => b.exact_size(),
         }
     }
 
@@ -104,6 +105,7 @@ impl MemoryDetails for MemoryType {
             MemoryType::Enum(e) => e.max_size(),
             MemoryType::View(v) => v.max_size(),
             MemoryType::Native(n) => n.max_size(),
+            MemoryType::BitMask(b) => b.max_size(),
         }
     }
 
@@ -113,6 +115,7 @@ impl MemoryDetails for MemoryType {
             MemoryType::Enum(e) => e.buffer_size(),
             MemoryType::View(v) => v.buffer_size(),
             MemoryType::Native(n) => n.buffer_size(),
+            MemoryType::BitMask(b) => b.buffer_size(),
         }
     }
 
@@ -122,6 +125,7 @@ impl MemoryDetails for MemoryType {
             MemoryType::Struct(t) => t.submembers(),
             MemoryType::View(t) => t.submembers(),
             MemoryType::Enum(t) => t.submembers(),
+            MemoryType::BitMask(t) => t.submembers(),
         }
     }
 
@@ -131,6 +135,7 @@ impl MemoryDetails for MemoryType {
             MemoryType::Struct(t) => t.context_size(),
             MemoryType::View(t) => t.context_size(),
             MemoryType::Enum(t) => t.context_size(),
+            MemoryType::BitMask(t) => t.context_size(),
         }
     }
 }
@@ -335,5 +340,27 @@ impl MemoryDetails for StructMemberMemory {
 
     fn context_size(&self) -> usize {
         self.memory.context_size()
+    }
+}
+
+impl MemoryDetails for BitMask {
+    fn exact_size(&self) -> Option<usize> {
+        self.native.exact_size()
+    }
+
+    fn max_size(&self) -> Option<usize> {
+        self.native.max_size()
+    }
+
+    fn buffer_size(&self) -> Option<usize> {
+        self.native.buffer_size()
+    }
+
+    fn submembers(&self) -> usize {
+        self.native.submembers()
+    }
+
+    fn context_size(&self) -> usize {
+        self.native.context_size()
     }
 }

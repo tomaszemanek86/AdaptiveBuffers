@@ -115,6 +115,7 @@ fn generate_get_method(m: &ViewMemory, i: usize, writer: &mut Writer) {
         MemoryType::Struct(_) => generate_get_non_native(m, i, writer),
         MemoryType::View(_) => generate_get_non_native(m, i, writer),
         MemoryType::Enum(_) => generate_get_non_native(m, i, writer),
+        MemoryType::BitMask(_) => generate_get_non_native(m, i, writer),
     }
 }
 

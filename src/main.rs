@@ -246,6 +246,7 @@ pub struct Memory {
 #[derive(Debug, variation::Variation)]
 pub enum MemoryType {
     Native(NativeType),
+    BitMask(Rc<BitMask>),
     Struct(Rc<RefCell<StructMemory>>),
     View(ViewMemory),
     Enum(Rc<EnumMemory>)

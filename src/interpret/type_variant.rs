@@ -136,6 +136,7 @@ impl TypeVariant {
             TypeVariant::View(v) => v.borrow_mut().resolve_unknown_types(types),
             TypeVariant::Enum(_e) => Ok(()),
             TypeVariant::Int(_) => Ok(()),
+            TypeVariant::BitMask(_) => Ok(()),
             TypeVariant::Unknown(_unknown) => panic!("cannot resolve unknown types for unknown"),
         }
     }
@@ -145,6 +146,7 @@ impl TypeVariant {
             TypeVariant::View(v) => v.borrow().code_view(),
             TypeVariant::Enum(e) => e.code_view(),
             TypeVariant::Int(i) => i.code_view(),
+            TypeVariant::BitMask(b) => b.code_view(),
             TypeVariant::Unknown(_unknown) => panic!("cannot get code view for unknown"),
         }
     }

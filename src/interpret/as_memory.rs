@@ -226,11 +226,21 @@ impl AsMemory for View {
     }
 }
 
+impl AsMemory for BitMask {
+    fn as_memory(&self, others: &Vec<MemoryDeclaration>) -> Result<Memory, InterpretError> {
+        return Ok(Memory {
+            memory: MemoryType::BitMask(Rc::new(self.clone())),
+            array_size: ArraySize::No
+        })
+    }
+}
+
 impl AsMemory for TypeVariant {
     fn as_memory(&self, others: &Vec<MemoryDeclaration>) -> Result<Memory, InterpretError> {
         match self {
             TypeVariant::Struct(s) => s.borrow().as_memory(others),
             TypeVariant::View(v) => v.borrow().as_memory(others),
+            TypeVariant::BitMask(b) => b.as_memory(others),
             TypeVariant::Enum(e) => e.as_memory(others),
             TypeVariant::Int(i) => i.as_memory(others),
             TypeVariant::Unknown(unknown) => Err(InterpretError::UnknownType(unknown.clone())),
