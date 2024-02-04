@@ -1,12 +1,8 @@
 endian little
 
-mask Bits : u8 {
+mask ColorMask : u8 {
     blue:       B0,
-    white:      B1,
-    red:        B2,
-    green:      B3 | B4,
-    black:      B3 | B5,
-    orange:     B3 | B4 | B5,
-    violete:    B6,
-    gray:       B7
+    green:      B1,
+    white:      B1 & B2,
+    red:        ~B0 & B1 & B2
 }

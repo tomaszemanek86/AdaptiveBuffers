@@ -65,7 +65,8 @@ impl ToString for InterpretError {
             InterpretError::ExpectedMemberSize(cv) => format!("expected member size reference (e.g. any_valid_member.size) at {}", cv.pos()),
             InterpretError::MemberValueNoUnsigned(cv) => format!("not unsigned member nor unsigned constant at {}", cv.pos()),
             InterpretError::BitMaskAlreadyExists(name, cv) => format!("mask name '{}' not unique at {}", name, cv.pos()),
-            InterpretError::InvalidBitExpression(cv) => format!("invalid expresion at {}", cv.pos())
+            InterpretError::InvalidBitExpression(cv) => format!("invalid expresion at {}", cv.pos()),
+            InterpretError::NotSingleBitValue(cv) => format!("not a signle bit number at {}", cv.pos())
         }
     }
 }

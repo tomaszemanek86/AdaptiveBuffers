@@ -46,7 +46,8 @@ pub enum InterpretError {
     ExpectedOperator(CodeView),
     ExpectedMemberSize(CodeView),
     MemberValueNoUnsigned(CodeView),
-    InvalidBitExpression(CodeView)
+    InvalidBitExpression(CodeView),
+    NotSingleBitValue(CodeView)
 }
 
 #[derive(variation::Variation, Clone)]

@@ -228,8 +228,23 @@ impl AsMemory for View {
 
 impl AsMemory for BitMask {
     fn as_memory(&self, others: &Vec<MemoryDeclaration>) -> Result<Memory, InterpretError> {
+        let mut bit_mask = self.clone();
+        bit_mask.native = self.native.as_unknown().unwrap().as_memory(others)?.memory.as_native().unwrap().clone();
+        for mask in &mut bit_mask.bits {
+            for bit_op in &mut mask.bits {
+                if let Some(value) = bit_op.as_value_mut() {
+                    let count = value.count_ones();
+                    if count == 1 {
+                        let index = value.trailing_zeros() as usize;
+                        *value = index;
+                    } else {
+                        return Err(InterpretError::NotSingleBitValue(bit_op.code_view()))
+                    }
+                }
+            }
+        }
         return Ok(Memory {
-            memory: MemoryType::BitMask(Rc::new(self.clone())),
+            memory: MemoryType::BitMask(Rc::new(bit_mask)),
             array_size: ArraySize::No
         })
     }

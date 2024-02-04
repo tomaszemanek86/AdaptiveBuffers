@@ -17,7 +17,7 @@ impl BitMask {
                         return Err(InterpretError::InvalidBitExpression(mask.bits[i + 1].code_view()))
                     }
                 }
-                if op.is_value() {
+                if op.is_and() {
                     if !mask.bits[i + 1].is_value() && !mask.bits[i + 1].is_not() {
                         return Err(InterpretError::InvalidBitExpression(mask.bits[i + 1].code_view()))
                     }

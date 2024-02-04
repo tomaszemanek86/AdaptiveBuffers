@@ -10,6 +10,75 @@ pub static SOURCE: &str = "
 
 namespace abf {
 <<BSWAP_SOURCE>>
+
+    inline uint8_t get_u8_bit(uint8_t index) {
+        uint8_t b = 0b10000000;
+        return b >> index;
+    }
+
+    inline uint16_t get_u16_bit(uint8_t index) {
+        uint16_t b = 0b1000000000000000;
+        return b >> index;
+    }
+
+    inline uint32_t get_u32_bit(uint8_t index) {
+        uint32_t b = 0b10000000000000000000000000000000;
+        return b >> index;
+    }
+
+    inline uint64_t get_u64_bit(uint8_t index) {
+        uint64_t b = 0b1000000000000000000000000000000000000000000000000000000000000000;
+        return b >> index;
+    }
+
+    inline uint8_t set_bit(uint8_t value, uint8_t index, bool on) {
+        if (on) {
+            return value | get_u8_bit(index);
+        } else {
+            return value & ~get_u8_bit(index);
+        }
+    }
+
+    inline uint16_t set_bit(uint16_t value, uint8_t index, bool on) {
+        if (on) {
+            return value | get_u16_bit(index);
+        } else {
+            return value & ~get_u16_bit(index);
+        }
+    }
+
+    inline uint32_t set_bit(uint32_t value, uint8_t index, bool on) {
+        if (on) {
+            return value | get_u32_bit(index);
+        } else {
+            return value & ~get_u32_bit(index);
+        }
+    }
+
+    inline uint64_t set_bit(uint64_t value, uint8_t index, bool on) {
+        if (on) {
+            return value | get_u64_bit(index);
+        } else {
+            return value & ~get_u64_bit(index);
+        }
+    }
+
+    inline bool is_bit_set(uint8_t value, uint8_t index) {
+        return (value & get_u8_bit(index)) != 0;
+    }
+
+    inline bool is_bit_set(uint16_t value, uint8_t index) {
+        return (value & get_u16_bit(index)) != 0;
+    }
+
+    inline bool is_bit_set(uint32_t value, uint8_t index) {
+        return (value & get_u32_bit(index)) != 0;
+    }
+
+    inline bool is_bit_set(uint64_t value, uint8_t index) {
+        return (value & get_u64_bit(index)) != 0;
+    }
+
     ////////////////////////////////////////////////////////////////////////////////
     // SERIALIZER
     ////////////////////////////////////////////////////////////////////////////////
