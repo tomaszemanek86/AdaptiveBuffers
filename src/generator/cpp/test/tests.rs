@@ -161,6 +161,16 @@ fn mask() {
 }
 
 #[test]
+fn mask_u24() {
+    generate_test(
+        "mask_u24.abf", 
+        "mask_u24.cpp", 
+        true, 
+        true
+    );
+}
+
+#[test]
 fn d3sb() {
     generate_test(
         "d3sb.abf", 
