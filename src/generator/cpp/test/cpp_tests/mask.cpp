@@ -6,7 +6,7 @@ using namespace mask;
 UTEST_MAIN();
 
 UTEST(mask, set_get_bit) {
-    auto value = abf::set_bit((uint8_t)0, 5, true);
+    auto value = abf::set_u8_bit((uint8_t)0, 5, true);
     ASSERT_EQ(abf::get_u8_bit(5), value);
 }
 

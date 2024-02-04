@@ -36,14 +36,14 @@ fn generate_with_method(m: &BitMask, mask: &Bits, writer: &mut Writer) {
     writer.write_line("auto value = native_.data();");
 
     if mask.bits.len() == 1 {
-        writer.write_line(&format!("value = abf::set_bit(value, {}, on);", mask.bits[0].as_value().unwrap()));
+        writer.write_line(&format!("value = abf::set_u{}_bit(value, {}, on);", m.native.bytes().unwrap() * 8, mask.bits[0].as_value().unwrap()));
     } else {
         for (i, bits) in mask.bits.deref().iter().enumerate() {
             if let Some(bit) = bits.as_value() {
                 if i > 0 && mask.bits[i - 1].is_not() {
-                    writer.write_line(&format!("value = abf::set_bit(value, {}, false);", bit));
+                    writer.write_line(&format!("value = abf::set_u{}_bit(value, {}, false);", m.native.bytes().unwrap() * 8, bit));
                 } else {
-                    writer.write_line(&format!("value = abf::set_bit(value, {}, true);", bit));
+                    writer.write_line(&format!("value = abf::set_u{}_bit(value, {}, true);", m.native.bytes().unwrap() * 8, bit));
                 }
             }
         }

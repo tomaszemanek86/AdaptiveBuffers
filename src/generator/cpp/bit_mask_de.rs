@@ -6,7 +6,7 @@ pub fn generate_bit_mask_deserializer(m: &BitMask, writer: &mut Writer) {
     writer.public();
     generate_ctor(m, writer);
     for mask in &m.bits {
-        generate_get(mask, writer);
+        generate_get(m, mask, writer);
     }
     generate_init(m, writer);
     generate_deserialized(m, writer);
@@ -51,16 +51,16 @@ fn generate_end(writer: &mut Writer) {
     writer.scope_out(false);
 }
 
-fn generate_get(mask: &Bits, writer: &mut Writer) {
+fn generate_get(m: &BitMask, mask: &Bits, writer: &mut Writer) {
     writer.write_with_offset(&format!("bool {}()", mask.name));
     writer.scope_in();
     writer.write_line("bool result = true;");
     for (i, bit) in mask.bits.iter().enumerate() {
         if bit.is_value() {
             if i > 0 && mask.bits[i - 1].is_not() {
-                writer.write_line(&format!("result = result && !abf::is_bit_set(native_.get_data(), {});", bit.as_value().unwrap()));
+                writer.write_line(&format!("result = result && !abf::is_u{}_bit_set(native_.get_data(), {});", m.native.bytes().unwrap() * 8, bit.as_value().unwrap()));
             } else {
-                writer.write_line(&format!("result = result && abf::is_bit_set(native_.get_data(), {});", bit.as_value().unwrap()));
+                writer.write_line(&format!("result = result && abf::is_u{}_bit_set(native_.get_data(), {});", m.native.bytes().unwrap() * 8, bit.as_value().unwrap()));
             }
         }
     }

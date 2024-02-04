@@ -21,6 +21,11 @@ namespace abf {
         return b >> index;
     }
 
+    inline uint32_t get_u24_bit(uint8_t index) {
+        uint32_t b = 0b00000000100000000000000000000000;
+        return b >> index;
+    }
+
     inline uint32_t get_u32_bit(uint8_t index) {
         uint32_t b = 0b10000000000000000000000000000000;
         return b >> index;
@@ -31,7 +36,7 @@ namespace abf {
         return b >> index;
     }
 
-    inline uint8_t set_bit(uint8_t value, uint8_t index, bool on) {
+    inline uint8_t set_u8_bit(uint8_t value, uint8_t index, bool on) {
         if (on) {
             return value | get_u8_bit(index);
         } else {
@@ -39,7 +44,7 @@ namespace abf {
         }
     }
 
-    inline uint16_t set_bit(uint16_t value, uint8_t index, bool on) {
+    inline uint16_t set_u16_bit(uint16_t value, uint8_t index, bool on) {
         if (on) {
             return value | get_u16_bit(index);
         } else {
@@ -47,7 +52,15 @@ namespace abf {
         }
     }
 
-    inline uint32_t set_bit(uint32_t value, uint8_t index, bool on) {
+    inline uint32_t set_u24_bit(uint32_t value, uint8_t index, bool on) {
+        if (on) {
+            return value | (get_u32_bit(index) >> 8);
+        } else {
+            return value & ~(get_u32_bit(index) >> 8);
+        }
+    }
+
+    inline uint32_t set_u32_bit(uint32_t value, uint8_t index, bool on) {
         if (on) {
             return value | get_u32_bit(index);
         } else {
@@ -55,7 +68,7 @@ namespace abf {
         }
     }
 
-    inline uint64_t set_bit(uint64_t value, uint8_t index, bool on) {
+    inline uint64_t set_u64_bit(uint64_t value, uint8_t index, bool on) {
         if (on) {
             return value | get_u64_bit(index);
         } else {
@@ -63,19 +76,23 @@ namespace abf {
         }
     }
 
-    inline bool is_bit_set(uint8_t value, uint8_t index) {
+    inline bool is_u8_bit_set(uint8_t value, uint8_t index) {
         return (value & get_u8_bit(index)) != 0;
     }
 
-    inline bool is_bit_set(uint16_t value, uint8_t index) {
+    inline bool is_u16_bit_set(uint16_t value, uint8_t index) {
         return (value & get_u16_bit(index)) != 0;
     }
 
-    inline bool is_bit_set(uint32_t value, uint8_t index) {
+    inline bool is_u24_bit_set(uint32_t value, uint8_t index) {
+        return (value & (get_u32_bit(index) >> 8)) != 0;
+    }
+
+    inline bool is_u32_bit_set(uint32_t value, uint8_t index) {
         return (value & get_u32_bit(index)) != 0;
     }
 
-    inline bool is_bit_set(uint64_t value, uint8_t index) {
+    inline bool is_u64_bit_set(uint64_t value, uint8_t index) {
         return (value & get_u64_bit(index)) != 0;
     }
 
@@ -657,7 +674,7 @@ inline void copy(void* dest, void* source, size_t size) {
             uint32_t u32_temp;
             std::memcpy(&u32_temp, source, 4);
             bswap32_ptr(&u32_temp);
-            std::memcpy(dest, reinterpret_cast<uint8_t*>(&u32_temp) + 1, 3);
+            std::memcpy(reinterpret_cast<uint8_t*>(dest), reinterpret_cast<uint8_t*>(&u32_temp) + 1, 3);
             break;
         case 4:
             std::memcpy(dest, source, size);
