@@ -4,7 +4,8 @@ pub fn generate_struct_deserializer(m: &StructMemory, writer: &mut Writer) {
     writer.write(&format!("class {}", m.deserializer_typename()));
     writer.scope_in();
     writer.public();
-    generate_ctor(m, writer);
+    generate_ctor(m, false, writer);
+    generate_ctor(m, true, writer);
     for i in 0..m.fields.len() {
         generate_deserialze(m, i, writer);
     }
@@ -39,8 +40,8 @@ fn generate_init(m: &StructMemory, writer: &mut Writer) {
     writer.scope_out(false);
 }
 
-fn generate_ctor(m: &StructMemory, writer: &mut Writer) {
-    writer.write_with_offset(&format!("{}(uint8_t* source)", m.deserializer_typename()));
+fn generate_ctor(m: &StructMemory, default: bool, writer: &mut Writer) {
+    writer.write_with_offset(&format!("{}({})", m.deserializer_typename(), if default { "uint8_t* source" } else { "" }));
     let init = m.fields
         .iter()
         //.filter(|f| f.default_constructible_deserializer())
@@ -55,7 +56,7 @@ fn generate_ctor(m: &StructMemory, writer: &mut Writer) {
     let _ = m.fields.iter()
             .filter(|f| f.default_constructible_deserializer())
             .inspect(|f| writer.write_line(&format!("{}_.init();", f.name)));
-    writer.write_line("_set_source(source);");
+    writer.write_line(&format!("_set_source({});", if default { "source" } else { "nullptr" }));
     for f in &m.fields {
         if let Some(asr) = f.get_array_size_reference() {
             writer.write_line(&format!("{}_.set_size_deserializer(&{}_);", f.name, asr.name));

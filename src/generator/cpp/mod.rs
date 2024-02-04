@@ -14,6 +14,7 @@ mod view_de;
 mod abf_core;
 mod bit_mask_ser;
 mod bit_mask_de;
+mod factory;
 
 #[cfg(test)]
 mod test;
@@ -84,6 +85,7 @@ pub fn generate(m: &Vec<MemoryDeclaration>, byte_swap: bool, args: &Args) {
                 bit_mask_de::generate_bit_mask_deserializer(&b, &mut writer);
             },
         }
+        factory::generate_factory(md, &mut writer);
     }
     writer.write_line("}");
     
