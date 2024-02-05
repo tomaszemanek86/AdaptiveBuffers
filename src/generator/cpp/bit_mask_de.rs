@@ -11,6 +11,7 @@ pub fn generate_bit_mask_deserializer(m: &BitMask, writer: &mut Writer) {
     generate_init(m, writer);
     generate_deserialized(m, writer);
     generate_source_set(m, writer);
+    generate_set_source(m, writer);
     generate_end(writer);
     writer.private();
     writer.write_line(&format!("{} native_;", m.native.deserializer_typename()));
@@ -34,6 +35,13 @@ fn generate_deserialized(m: &BitMask, writer: &mut Writer) {
     writer.write_with_offset("bool _deserialized()");
     writer.scope_in();
     writer.write_line("return native_._deserialized();");
+    writer.scope_out(false);
+}
+
+fn generate_set_source(m: &BitMask, writer: &mut Writer) {
+    writer.write_with_offset("bool _source_set()");
+    writer.scope_in();
+    writer.write_line("return native_._source_set();");
     writer.scope_out(false);
 }
 

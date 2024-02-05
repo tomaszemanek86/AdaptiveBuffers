@@ -50,7 +50,7 @@ fn generate_member_serialzier(m: &StructMemory, i: usize, writer: &mut Writer) {
 
 fn generate_with_method(m: &StructMemory, i: usize, writer: &mut Writer) {
     let sm = m.fields[i].as_ref();
-    if sm.directly_deserializable() {
+    if sm.directly_serializable() {
         writer.write_with_offset(&format!("void with_{}({} value)",
             sm.variable(),
             sm.native_typename()));

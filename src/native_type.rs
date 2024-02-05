@@ -27,7 +27,7 @@ impl NativeType {
         }
     }
 
-    pub fn size(&self) -> u8 {
+    pub fn size(&self) -> usize {
         match self {
             Self::Bool => 1,
             Self::I8 => 1,
@@ -45,10 +45,10 @@ impl NativeType {
             Self::ConstU32(_) => 4,
             Self::ConstU64(_) => 8,
             Self::Unknown(_) => panic!("cannot get bytes from unknow native type"),
-            Self::ViewKeyReference(mr) => mr.key.memory.borrow().memory.as_native().unwrap().size(),
-            Self::ArrayDimensionReference(mr) => mr.size.memory.borrow().memory.as_native().unwrap().size(),
-            Self::StructMemberSize(m) => m.origin.memory.borrow().memory.as_native().unwrap().size(),
-            NativeType::StructMemberSizeArithmetics(m) => m.native.size(),
+            Self::ViewKeyReference(mr) => mr.key.memory.borrow().memory.as_native().unwrap().typ.size(),
+            Self::ArrayDimensionReference(mr) => mr.size.memory.borrow().memory.as_native().unwrap().typ.size(),
+            Self::StructMemberSize(m) => m.origin.memory.borrow().memory.as_native().unwrap().typ.size(),
+            NativeType::StructMemberSizeArithmetics(m) => m.native.exact_size().unwrap(),
         }
     }
 
@@ -74,6 +74,10 @@ impl NativeType {
             Self::U64 => true,
             _ => false
         }
+    }
+
+    pub fn native(&self) -> Native {
+        Native { typ: self.clone() }
     }
 }
 

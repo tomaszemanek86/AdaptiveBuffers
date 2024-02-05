@@ -4,43 +4,11 @@ impl<T: MemoryDetails> MemoryDetails for std::rc::Rc<T> {
     fn exact_size(&self) -> Option<usize> {
         self.as_ref().exact_size()
     }
-
-    fn max_size(&self) -> Option<usize> {
-        self.as_ref().max_size()
-    }
-
-    fn buffer_size(&self) -> Option<usize> {
-        self.as_ref().buffer_size()
-    }
-
-    fn submembers(&self) -> usize {
-        self.as_ref().submembers()
-    }
-
-    fn context_size(&self) -> usize {
-        self.as_ref().context_size()
-    }
 }
 
 impl<T: MemoryDetails> MemoryDetails for RefCell<T> {
     fn exact_size(&self) -> Option<usize> {
         self.borrow().exact_size()
-    }
-
-    fn max_size(&self) -> Option<usize> {
-        self.borrow().max_size()
-    }
-
-    fn buffer_size(&self) -> Option<usize> {
-        self.borrow().buffer_size()
-    }
-
-    fn submembers(&self) -> usize {
-        self.borrow().submembers()
-    }
-
-    fn context_size(&self) -> usize {
-        self.borrow().context_size()
     }
 }
 
@@ -48,43 +16,11 @@ impl MemoryDetails for MemoryDeclaration {
     fn exact_size(&self) -> Option<usize> {
         self.memory.exact_size()
     }
-
-    fn max_size(&self) -> Option<usize> {
-        self.memory.max_size()
-    }
-
-    fn buffer_size(&self) -> Option<usize> {
-        self.memory.buffer_size()
-    }
-
-    fn submembers(&self) -> usize {
-        self.memory.submembers()
-    }
-
-    fn context_size(&self) -> usize {
-        self.memory.context_size()
-    }
 }
 
 impl MemoryDetails for Memory {
     fn exact_size(&self) -> Option<usize> {
         self.memory.exact_size()
-    }
-
-    fn max_size(&self) -> Option<usize> {
-        self.memory.max_size()
-    }
-
-    fn buffer_size(&self) -> Option<usize> {
-        self.memory.buffer_size()
-    }
-
-    fn submembers(&self) -> usize {
-        self.memory.submembers()
-    }
-
-    fn context_size(&self) -> usize {
-        self.memory.context_size()
     }
 }
 
@@ -96,46 +32,6 @@ impl MemoryDetails for MemoryType {
             MemoryType::View(v) => v.exact_size(),
             MemoryType::Native(n) => n.exact_size(),
             MemoryType::BitMask(b) => b.exact_size(),
-        }
-    }
-
-    fn max_size(&self) -> Option<usize> {
-        match self {
-            MemoryType::Struct(s) => s.max_size(),
-            MemoryType::Enum(e) => e.max_size(),
-            MemoryType::View(v) => v.max_size(),
-            MemoryType::Native(n) => n.max_size(),
-            MemoryType::BitMask(b) => b.max_size(),
-        }
-    }
-
-    fn buffer_size(&self) -> Option<usize> {
-        match self {
-            MemoryType::Struct(s) => s.buffer_size(),
-            MemoryType::Enum(e) => e.buffer_size(),
-            MemoryType::View(v) => v.buffer_size(),
-            MemoryType::Native(n) => n.buffer_size(),
-            MemoryType::BitMask(b) => b.buffer_size(),
-        }
-    }
-
-    fn submembers(&self) -> usize {
-        match self {
-            MemoryType::Native(t) => t.submembers(),
-            MemoryType::Struct(t) => t.submembers(),
-            MemoryType::View(t) => t.submembers(),
-            MemoryType::Enum(t) => t.submembers(),
-            MemoryType::BitMask(t) => t.submembers(),
-        }
-    }
-
-    fn context_size(&self) -> usize {
-        match self {
-            MemoryType::Native(t) => t.context_size(),
-            MemoryType::Struct(t) => t.context_size(),
-            MemoryType::View(t) => t.context_size(),
-            MemoryType::Enum(t) => t.context_size(),
-            MemoryType::BitMask(t) => t.context_size(),
         }
     }
 }
@@ -165,21 +61,11 @@ impl MemoryDetails for NativeType {
             NativeType::StructMemberSizeArithmetics(m) => m.native.exact_size(),
         }
     }
+}
 
-    fn max_size(&self) -> Option<usize> {
-        self.exact_size()
-    }
-
-    fn buffer_size(&self) -> Option<usize> {
-        self.exact_size().and_then(|bytes| Some(bytes + 1))
-    }
-
-    fn submembers(&self) -> usize {
-        1
-    }
-
-    fn context_size(&self) -> usize {
-        cpp_ptr_size() * 2 + NativeType::U32.exact_size().unwrap()
+impl MemoryDetails for Native {
+    fn exact_size(&self) -> Option<usize> {
+        self.typ.exact_size()
     }
 }
 
@@ -193,36 +79,6 @@ impl MemoryDetails for StructMemory {
             }
             None
         })
-    }
-
-    fn max_size(&self) -> Option<usize> {
-        self.fields.iter().fold(Some(0), |sum, m| {
-            if let Some(size1) = sum {
-                if let Some(size2) = m.memory.borrow().max_size() {
-                    return Some(size1 + size2);
-                }
-            }
-            None
-        })
-    }
-
-    fn buffer_size(&self) -> Option<usize> {
-        self.fields.iter().fold(Some(0), |sum, m| {
-            if let Some(size1) = sum {
-                if let Some(size2) = m.memory.borrow().buffer_size() {
-                    return Some(size1 + size2);
-                }
-            }
-            None
-        }).and_then(|bytes| Some(bytes + self.fields.len()))
-    }
-
-    fn submembers(&self) -> usize {
-        self.fields.iter().map(|f| f.submembers()).sum()
-    }
-
-    fn context_size(&self) -> usize {
-        self.fields.iter().map(|t| t.memory.context_size()).sum::<usize>()
     }
 }
 
@@ -239,63 +95,11 @@ impl MemoryDetails for ViewMemory {
             None
         })
     }
-
-    fn max_size(&self) -> Option<usize> {
-        if self.types.iter().all(|v| v.memory.max_size().is_some()) {
-            Some(
-                self.types
-                    .iter()
-                    .map(|v| v.memory.max_size().unwrap())
-                    .max()
-                    .unwrap(),
-            )
-        } else {
-            None
-        }
-    }
-
-    fn buffer_size(&self) -> Option<usize> {
-        if self.types.iter().all(|v| v.memory.buffer_size().is_some()) {
-            Some(
-                self.types
-                    .iter()
-                    .map(|v| v.memory.buffer_size().unwrap())
-                    .max()
-                    .unwrap(),
-            )
-        } else {
-            None
-        }.and_then(|bytes| Some(bytes + 3)) // u16 for type identification + bool for is set
-    }
-
-    fn submembers(&self) -> usize {
-        self.types.iter().map(|t| t.memory.submembers()).max().unwrap()
-    }
-
-    fn context_size(&self) -> usize {
-        self.types.iter().map(|t| t.memory.context_size()).max().unwrap()
-    }
 }
 
 impl MemoryDetails for ViewPosibilityMemory {
     fn exact_size(&self) -> Option<usize> {
         self.memory.exact_size()
-    }
-
-    fn max_size(&self) -> Option<usize> {
-        self.memory.max_size()
-    }
-
-    fn buffer_size(&self) -> Option<usize> {
-        self.memory.buffer_size()
-    }
-
-    fn submembers(&self) -> usize {
-        self.memory.submembers()
-    }
-
-    fn context_size(&self) -> usize {
-        cpp_ptr_size() * 2 + NativeType::U32.exact_size().unwrap()
     }
 }
 
@@ -303,64 +107,16 @@ impl MemoryDetails for EnumMemory {
     fn exact_size(&self) -> Option<usize> {
         self.underlaying_type.exact_size()
     }
-
-    fn max_size(&self) -> Option<usize> {
-        self.underlaying_type.max_size()
-    }
-
-    fn buffer_size(&self) -> Option<usize> {
-        self.underlaying_type.buffer_size().and_then(|bytes| Some(bytes + 1))
-    }
-
-    fn submembers(&self) -> usize {
-        self.underlaying_type.submembers()
-    }
-
-    fn context_size(&self) -> usize {
-        cpp_ptr_size() * 2 + NativeType::U32.exact_size().unwrap()
-    }
 }
 
 impl MemoryDetails for StructMemberMemory {
     fn exact_size(&self) -> Option<usize> {
         self.memory.borrow().exact_size()
     }
-
-    fn max_size(&self) -> Option<usize> {
-        self.memory.borrow().max_size()
-    }
-
-    fn buffer_size(&self) -> Option<usize> {
-        self.memory.borrow().buffer_size()
-    }
-
-    fn submembers(&self) -> usize {
-        self.memory.submembers()
-    }
-
-    fn context_size(&self) -> usize {
-        self.memory.context_size()
-    }
 }
 
 impl MemoryDetails for BitMask {
     fn exact_size(&self) -> Option<usize> {
         self.native.exact_size()
-    }
-
-    fn max_size(&self) -> Option<usize> {
-        self.native.max_size()
-    }
-
-    fn buffer_size(&self) -> Option<usize> {
-        self.native.buffer_size()
-    }
-
-    fn submembers(&self) -> usize {
-        self.native.submembers()
-    }
-
-    fn context_size(&self) -> usize {
-        self.native.context_size()
     }
 }

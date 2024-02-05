@@ -9,6 +9,7 @@ pub fn generate_enum_deserializer(m: &EnumMemory, writer: &mut Writer) {
     generate_init(m, writer);
     generate_deserialized(m, writer);
     generate_source_set(m, writer);
+    generate_set_source(m, writer);
     generate_end(writer);
     writer.private();
     writer.write_line(&format!("abf::NativeDeserializer<{}, {}> native_;", m.underlaying_type.native_typename(), m.underlaying_type.bytes().unwrap()));
@@ -36,6 +37,13 @@ fn generate_deserialized(m: &EnumMemory, writer: &mut Writer) {
 }
 
 fn generate_source_set(m: &EnumMemory, writer: &mut Writer) {
+    writer.write_with_offset("bool _source_set()");
+    writer.scope_in();
+    writer.write_line("return native_._source_set();");
+    writer.scope_out(false);
+}
+
+fn generate_set_source(m: &EnumMemory, writer: &mut Writer) {
     writer.write_with_offset("void _set_source(uint8_t* source)");
     writer.scope_in();
     writer.write_line("native_._set_source(source);");

@@ -148,10 +148,10 @@ impl Struct {
                 };
                 match &mi.typ.typ {
                     TypeVariant::Struct(t) => known_types.contains(&t.borrow().name),
-                    TypeVariant::Enum(_) => true,
+                    TypeVariant::Enum(t) => known_types.contains(&t.name),
                     TypeVariant::View(t) => known_types.contains(&t.borrow().name),
                     TypeVariant::Int(_) => return true,
-                    TypeVariant::BitMask(_) => return true,
+                    TypeVariant::BitMask(t) => known_types.contains(&t.name),
                     TypeVariant::Unknown(_) => panic!("unexpected unknown type"),
                 }
             })

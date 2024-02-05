@@ -9,6 +9,10 @@ impl CppMemoryDetail for MemoryDeclaration {
         self.memory.directly_deserializable()
     }
 
+    fn directly_serializable(&self) -> bool {
+        self.memory.directly_serializable()
+    }
+
     fn directly_deserializable(&self) -> bool {
         self.memory.directly_deserializable()
     }
@@ -50,6 +54,14 @@ impl CppMemoryDetail for Memory {
     fn directly_deserializable(&self) -> bool {
         match self.array_size {
             ArraySize::No => self.memory.directly_deserializable(),
+            ArraySize::Dyn => false,
+            ArraySize::Exact(_) => false,
+        }
+    }
+
+    fn directly_serializable(&self) -> bool {
+        match self.array_size {
+            ArraySize::No => self.memory.directly_serializable(),
             ArraySize::Dyn => false,
             ArraySize::Exact(_) => false,
         }
@@ -126,6 +138,16 @@ impl CppMemoryDetail for MemoryType {
             MemoryType::View(m) => m.directly_deserializable(),
             MemoryType::Enum(m) => m.directly_deserializable(),
             MemoryType::BitMask(m) => m.directly_deserializable(),
+        }
+    }
+
+    fn directly_serializable(&self) -> bool {
+        match &self {
+            MemoryType::Native(m) => m.directly_serializable(),
+            MemoryType::Struct(m) => m.borrow().directly_serializable(),
+            MemoryType::View(m) => m.directly_serializable(),
+            MemoryType::Enum(m) => m.directly_serializable(),
+            MemoryType::BitMask(m) => m.directly_serializable(),
         }
     }
 
@@ -219,6 +241,9 @@ impl CppMemoryDetail for NativeType {
             NativeType::StructMemberSizeArithmetics(_) => false,
             _ => true
         }
+    }
+    fn directly_serializable(&self) -> bool {
+        true
     }
     fn directly_deserializable(&self) -> bool {
         true
@@ -324,12 +349,53 @@ impl CppMemoryDetail for NativeType {
     }
 }
 
+impl CppMemoryDetail for Native {
+    fn name(&self) -> String {
+        self.typ.name()
+    }
+
+    fn user_value_serializable(&self) -> bool {
+        self.typ.user_value_serializable()
+    }
+
+    fn directly_serializable(&self) -> bool {
+        self.typ.directly_serializable()
+    }
+
+    fn directly_deserializable(&self) -> bool {
+        self.typ.directly_deserializable()
+    }
+
+    fn serializer_typename(&self) -> String {
+        self.typ.serializer_typename()
+    }
+
+    fn deserializer_typename(&self) -> String {
+        self.typ.deserializer_typename()
+    }
+
+    fn native_typename(&self) -> String {
+        self.typ.native_typename()
+    }
+
+    fn bytes(&self) -> Option<u32> {
+        self.typ.bytes()
+    }
+
+    fn default_constructible_deserializer(&self) -> bool {
+        self.typ.default_constructible_deserializer()
+    }
+}
+
 impl CppMemoryDetail for StructMemory {
     fn name(&self) -> String {
         self.name.clone()
     }
     fn user_value_serializable(&self) -> bool {
         true
+    }
+    fn directly_serializable(&self) -> bool {
+        false
     }
     fn directly_deserializable(&self) -> bool {
         false
@@ -366,6 +432,9 @@ impl CppMemoryDetail for ViewMemory {
     fn user_value_serializable(&self) -> bool {
         true
     }
+    fn directly_serializable(&self) -> bool {
+        false
+    }
     fn directly_deserializable(&self) -> bool {
         false
     }
@@ -397,6 +466,9 @@ impl CppMemoryDetail for EnumMemory {
     fn user_value_serializable(&self) -> bool {
         true
     }
+    fn directly_serializable(&self) -> bool {
+        true
+    }
     fn directly_deserializable(&self) -> bool {
         true
     }
@@ -423,6 +495,9 @@ impl CppMemoryDetail for StructMemberMemory {
     }
     fn user_value_serializable(&self) -> bool {
         self.memory.borrow().user_value_serializable()
+    }
+    fn directly_serializable(&self) -> bool {
+        self.memory.borrow().directly_serializable()
     }
     fn directly_deserializable(&self) -> bool {
         self.memory.borrow().directly_deserializable()
@@ -465,6 +540,9 @@ impl CppMemoryDetail for ViewPosibilityMemory {
     fn user_value_serializable(&self) -> bool {
         self.memory.user_value_serializable()
     }
+    fn directly_serializable(&self) -> bool {
+        self.memory.directly_serializable()
+    }
     fn directly_deserializable(&self) -> bool {
         self.memory.directly_deserializable()
     }
@@ -491,11 +569,15 @@ impl CppMemoryDetail for BitMask {
     }
 
     fn user_value_serializable(&self) -> bool {
-        true
+        false
+    }
+
+    fn directly_serializable(&self) -> bool {
+        false
     }
 
     fn directly_deserializable(&self) -> bool {
-        true
+        false
     }
 
     fn serializer_typename(&self) -> String {

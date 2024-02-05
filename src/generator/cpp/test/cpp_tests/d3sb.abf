@@ -317,54 +317,46 @@ struct PwrSrc_GetType_Request {
 
 # GetStatus
 
-enum PwrSrcStatus0 : u8 {
-    Overtemperature     = b00000001,
-    BatTempHigh         = b00000010,
-    BatMissing          = b00000100,
-    BatShorted          = b00001000,
-    ChargerState        = b00110000,
-    BatState            = b01000000,
-    Rser                = b10000000
-}
+mask PwrSrcStatus : u24 {
+    Overtemperature     = B7,
+    BatTempHigh         = B6,
+    BatMissing          = B5,
+    BatShorted          = B4,
+    ChargerSuspended    = ~B2 & ~B3,
+    ChargerCstCurrnet   = ~B2 &  B3,
+    ChargerCstVoltage   =  B2 & ~B3,
+    ChargerMaintenance  =  B2 &  B3,
+    BatState            = B1,
+    Rser                = B0,
 
-enum PwrSrcStatus1 : u8 {
-    VinHigh     = b00000001,
-    VinLow      = b00000010,
-    VsysHigh    = b00000100,
-    VsysLow     = b00001000,
-    VbatHigh    = b00010000,
-    VbatLow     = b00100000,
-    IbatLow     = b01000000,
-    IinHigh     = b10000000
-}
+    VinHigh             = B15,
+    VinLow              = B14,
+    VsysHigh            = B13,
+    VsysLow             = B12,
+    VbatHigh            = B11,
+    VbatLow             = B10,
+    IbatLow             = B9,
+    IinHigh             = B8,
 
-enum PwrSrcStatus2 : u8 {
-    CCUState    = b00000011,
-    OutHc       = b00000100,
-    OutState    = b00011000,
-    ReducerEn   = b00100000,
-    VSupHigh    = b01000000,
-    VsupLow     = b10000000
-}
+    CcuDisabled         = ~B22 & ~B23,
+    CcuOk               = ~B22 &  B23,
+    CcuDown             =  B22 & ~B23,
+    CcuNearOverload     =  B22 &  B23,
 
-enum PsuState : u8 {
-    Disabled        = b00,
-    Ok              = b01,
-    Down            = b10,
-    NearOverload    = b11 # load over 70% of nominal fuse current
-}
+    OutHc               = B21,
 
-enum ChargerState : u8 {
-    Suspended           = b00,
-    ConstCurrentMode    = b01,
-    ConstVoltageMode    = b10,
-    MaintanenceMode     = b11
+    OutDisabled         = ~B19 & ~B20,
+    OutOk               = ~B19 &  B20,
+    OutDown             =  B19 & ~B20,
+    OutNearOverload     =  B19 &  B20,
+
+    ReducerEn           = B18,
+    VSupHigh            = B17,
+    VsupLow             = B16
 }
 
 struct PwrSrc_GetStatus_Response {
-    status0: u8,
-    status1: u8,
-    status2: u8
+    status: PwrSrcStatus
 }
 
 struct PwrSrc_GetStatus_Request {
@@ -535,23 +527,23 @@ struct PwrSrc_GetMaxOutCurrent_Response {
     max_charge_current: u16
 }
 
-enum PwrSrcChargerDiagnostics : u16 {
-    intvcc_gt2p8v       = b0000000000000001,
-    intvcc_gt_4p3v      = b0000000000000010,
-    vin_gt_vbat         = b0000000000000100,
-    vin_ovlo            = b0000000000001000,
-    thermal_shutdown    = b0000000000010000,
-    no_rt               = b0000000000100000,
-    ok_to_charge        = b0000000001000000,
-    lead_acid_temp_comp = b0000000010000000,
-    cell_count_error    = b0000000100000000,
-    drvcc_good          = b0000001000000000,
-    equalize_req        = b0000010000000000,
-    mppt_en_pin         = b0000100000000000,
-    unused              = b0001000000000000,
-    charger_enabled     = b0010000000000000,
-    vin_uvcl_active     = b0100000000000000,
-    iin_limit_active    = b1000000000000000
+mask PwrSrcChargerDiagnostics : u16 {
+    intvcc_gt2p8v       = B0,
+    intvcc_gt_4p3v      = B1,
+    vin_gt_vbat         = B2,
+    vin_ovlo            = B3,
+    thermal_shutdown    = B4,
+    no_rt               = B5,
+    ok_to_charge        = B6,
+    lead_acid_temp_comp = B7,
+    cell_count_error    = B8,
+    drvcc_good          = B9,
+    equalize_req        = B10,
+    mppt_en_pin         = B11,
+    unused              = B12,
+    charger_enabled     = B13,
+    vin_uvcl_active     = B14,
+    iin_limit_active    = B15
 }
 
 struct PwrSrc_GetChargerDiagnostics_Request {
@@ -560,7 +552,7 @@ struct PwrSrc_GetChargerDiagnostics_Request {
 }
 
 struct PwrSrc_GetChargerDiagnostics_Response {
-    diagostics: u16
+    diagostics: PwrSrcChargerDiagnostics
 }
 
 struct PwrSrc_GetStatistics_Request {
@@ -602,7 +594,7 @@ enum PwrSrcMemoryType : u8 {
 }
 
 struct PwrSrc_MemoryClear {
-    type: u8 # TODO: make appropriate enum
+    type: PwrSrcMemoryType
 }
 
 struct PwrSrc_NewFirmwareData {

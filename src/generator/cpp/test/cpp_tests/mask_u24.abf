@@ -1,8 +1,8 @@
 endian little
 
 mask Mask24 : u24 {
-    second_0:   B1,
-    second_1:   B9,
-    second_2:   B17,
-    firsts:     B0 & B8 & B16
+    second_0  = B1,
+    second_1  = B9,
+    second_2  = B17,
+    firsts    = B0 & B8 & B16
 }

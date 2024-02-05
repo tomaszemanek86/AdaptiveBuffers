@@ -1,8 +1,8 @@
 endian little
 
 mask ColorMask : u8 {
-    blue:       B0,
-    green:      B1,
-    white:      B1 & B2,
-    red:        ~B0 & B1 & B2
+    blue      = B0,
+    green     = B1,
+    white     = B1 & B2,
+    red       = ~B0 & B1 & B2
 }

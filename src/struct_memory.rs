@@ -12,6 +12,7 @@ impl StructMemory {
             .memory
             .as_native()
             .unwrap()
+            .typ
             .as_view_key_reference()
             .unwrap()
             .view
@@ -20,7 +21,7 @@ impl StructMemory {
 
     pub fn is_view_reference(&self, member_index: usize) -> bool {
         if self.fields[member_index].memory.borrow().memory.is_native() {
-            if self.fields[member_index].memory.borrow().memory.as_native().unwrap().is_view_key_reference() {
+            if self.fields[member_index].memory.borrow().memory.as_native().unwrap().typ.is_view_key_reference() {
                 return true
             }
         }

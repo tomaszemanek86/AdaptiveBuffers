@@ -781,7 +781,7 @@ impl Parser for Bits {
         let res = Sequence::new(&mut [
             &mut self.name,
             &mut WhiteChars::default(),
-            &mut Token::new(":", true),
+            &mut Token::new("=", true),
             &mut WhiteChars::default(),
             &mut artihmetics
         ])
@@ -820,7 +820,7 @@ impl Parser for BitMask {
             &mut Token::new("}", true),
         ])
         .parse(text)?;
-    self.native = NativeType::Unknown(native);
+        self.native = Native { typ: NativeType::Unknown(native) };
         self.bits = bit_masks.data;
         Ok(res)
     }
@@ -1242,7 +1242,7 @@ mod test {
     #[test]
     fn bits() {
         let mut parser = Bits::default();
-        let res = parser.parse(&CodeView::from("abc : B1 & ~B3"));
+        let res = parser.parse(&CodeView::from("abc = B1 & ~B3"));
         assert_eq!(res.is_ok(), true);
         assert_eq!(parser.name, "abc");
         assert_eq!(parser.bits.len(), 4);
@@ -1260,7 +1260,7 @@ mod test {
         let res = parser.parse(&CodeView::from("mask XX : u16 {}"));
         assert_eq!(res.is_ok(), true);
         assert_eq!(parser.name, "XX");
-        assert!(parser.native.is_unknown());
+        assert!(parser.native.typ.is_unknown());
         assert_eq!(parser.bits.len(), 0);
     }
 
@@ -1268,8 +1268,8 @@ mod test {
     fn bit_mask_2() {
         let mut parser = BitMask::default();
         let res = parser.parse(&CodeView::from("mask Numbers : u8 {
-                ten: B0,
-                twenty: B6 & ~B1
+                ten=B0,
+                twenty = B6 & ~B1
             }"));
         assert_eq!(res.is_ok(), true);
         assert_eq!(parser.name, "Numbers");

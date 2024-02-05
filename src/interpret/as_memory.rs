@@ -36,7 +36,7 @@ impl AsMemory for Struct {
             if let Some(c) = &self.members[i].constant {
                 match c {
                     StructMemberConstant::Usize(value) => if let Some(nm) = f.memory.borrow_mut().memory.as_native_mut() {
-                        nm.make_const(*value).map_err(|e| InterpretError::GenericError(e))?
+                        nm.typ.make_const(*value).map_err(|e| InterpretError::GenericError(e))?
                     } else {
                         return Err(InterpretError::CannotAsignUsizeCstToNonUnsignedMemory(*value))
                     },
@@ -49,7 +49,7 @@ impl AsMemory for Struct {
                                     key: f.clone(),
                                     view: structure.borrow().fields[index].clone()
                                 }
-                            )).non_array_memory();
+                            ).native()).non_array_memory();
         
                     },
                     StructMemberConstant::ArrayDimension(mr) => {
@@ -61,7 +61,7 @@ impl AsMemory for Struct {
                                     size: f.clone(),
                                     array: structure.borrow().fields[index].clone()
                                 }
-                            )).non_array_memory();
+                            ).native()).non_array_memory();
                     },
                     StructMemberConstant::Size(mr) => {
                         let index = self.get_member_index_by_name(&mr.member_name.data).unwrap();
@@ -72,7 +72,7 @@ impl AsMemory for Struct {
                                     origin: f.clone(),
                                     member: structure.borrow().fields[index].clone()
                                 }
-                            )).non_array_memory();
+                            ).native()).non_array_memory();
                     },
                     StructMemberConstant::EnumMemberValue(emv) => {
                         let value = others
@@ -86,7 +86,7 @@ impl AsMemory for Struct {
                                 .ok_or_else(|| InterpretError::UnknownEnumMember(emv.enum_member.code_view().clone()))?
                                 .value;
                         if let Some(nm) = f.memory.borrow_mut().memory.as_native_mut() {
-                            nm.make_const(value).map_err(|e| InterpretError::GenericError(e))?
+                            nm.typ.make_const(value).map_err(|e| InterpretError::GenericError(e))?
                         } else {
                             return Err(InterpretError::CannotAsignUsizeCstToNonUnsignedMemory(value))
                         }
@@ -121,7 +121,7 @@ impl AsMemory for Struct {
                                     parser::SizeArithmetics::Usize(value) => SizeArithmetics::Usize(*value)
                                 }).collect()
                             }
-                        )).non_array_memory();
+                        ).native()).non_array_memory();
                         
                     }
                 } 
@@ -129,7 +129,7 @@ impl AsMemory for Struct {
         }
         for f in &structure.borrow().fields {
             if let Some(nm) = f.memory.borrow().memory.as_native() {
-                if let NativeType::ViewKeyReference(vrk) = nm {
+                if let NativeType::ViewKeyReference(vrk) = &nm.typ {
                     if vrk.view.memory.borrow().memory.as_view().unwrap().get_index_typename().size() > 4 {
                         return Err(InterpretError::ViewReferenceKeyIsTooBig(
                             self.members[f.index].constant
@@ -168,19 +168,19 @@ impl AsMemory for Int {
     fn as_memory(&self, _others: &Vec<MemoryDeclaration>) -> Result<Memory, InterpretError> {
         if self.signed {
             match self.bytes {
-                8 => Ok(MemoryType::Native(NativeType::I8).non_array_memory()),
-                16 => Ok(MemoryType::Native(NativeType::I16).non_array_memory()),
-                32 => Ok(MemoryType::Native(NativeType::I32).non_array_memory()),
-                64 => Ok(MemoryType::Native(NativeType::I64).non_array_memory()),
+                8 => Ok(MemoryType::Native(NativeType::I8.native()).non_array_memory()),
+                16 => Ok(MemoryType::Native(NativeType::I16.native()).non_array_memory()),
+                32 => Ok(MemoryType::Native(NativeType::I32.native()).non_array_memory()),
+                64 => Ok(MemoryType::Native(NativeType::I64.native()).non_array_memory()),
                 _ => Err(InterpretError::UnknownIntSize(self.bytes)),
             }
         } else {
             match self.bytes {
-                8 => Ok(MemoryType::Native(NativeType::U8).non_array_memory()),
-                16 => Ok(MemoryType::Native(NativeType::U16).non_array_memory()),
-                24 => Ok(MemoryType::Native(NativeType::U24).non_array_memory()),
-                32 => Ok(MemoryType::Native(NativeType::U32).non_array_memory()),
-                64 => Ok(MemoryType::Native(NativeType::U64).non_array_memory()),
+                8 => Ok(MemoryType::Native(NativeType::U8.native()).non_array_memory()),
+                16 => Ok(MemoryType::Native(NativeType::U16.native()).non_array_memory()),
+                24 => Ok(MemoryType::Native(NativeType::U24.native()).non_array_memory()),
+                32 => Ok(MemoryType::Native(NativeType::U32.native()).non_array_memory()),
+                64 => Ok(MemoryType::Native(NativeType::U64.native()).non_array_memory()),
                 _ => Err(InterpretError::UnknownIntSize(self.bytes)),
             }
         }
@@ -229,7 +229,7 @@ impl AsMemory for View {
 impl AsMemory for BitMask {
     fn as_memory(&self, others: &Vec<MemoryDeclaration>) -> Result<Memory, InterpretError> {
         let mut bit_mask = self.clone();
-        bit_mask.native = self.native.as_unknown().unwrap().as_memory(others)?.memory.as_native().unwrap().clone();
+        bit_mask.native = self.native.typ.as_unknown().unwrap().as_memory(others)?.memory.as_native().unwrap().clone();
         for mask in &mut bit_mask.bits {
             for bit_op in &mut mask.bits {
                 if let Some(value) = bit_op.as_value_mut() {

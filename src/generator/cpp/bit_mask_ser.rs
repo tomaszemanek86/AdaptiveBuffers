@@ -10,6 +10,7 @@ pub fn generate_bit_mask_serializer(m: &BitMask, writer: &mut Writer) {
     for mask in &m.bits {
         generate_with_method(m, mask, writer);
     }
+    generate_init(writer);
     generate_size(writer);
     generate_serialize(writer);
     generate_serialize_into_vector(writer);
@@ -65,5 +66,12 @@ fn generate_size(writer: &mut Writer) {
     writer.write_with_offset("uint32_t size()");
     writer.scope_in();
     writer.write_line("return native_.size();");
+    writer.scope_out(false);
+}
+
+fn generate_init(writer: &mut Writer) {
+    writer.write_with_offset("void init()");
+    writer.scope_in();
+    writer.write_line("return native_.init();");
     writer.scope_out(false);
 }

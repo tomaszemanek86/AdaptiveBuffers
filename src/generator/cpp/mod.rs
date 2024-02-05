@@ -28,6 +28,7 @@ pub struct Writer {
 trait CppMemoryDetail {
     fn name(&self) -> String;
     fn user_value_serializable(&self) -> bool;
+    fn directly_serializable(&self) -> bool;
     fn directly_deserializable(&self) -> bool;
     fn serializer_typename(&self) -> String;
     fn deserializer_typename(&self) -> String;

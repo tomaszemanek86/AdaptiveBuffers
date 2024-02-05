@@ -6,6 +6,7 @@ pub fn generate_enum_serializer(m: &EnumMemory, writer: &mut Writer) {
     writer.public();
     generate_ctor(m, writer);
     generate_with_method(m, writer);
+    generate_init(writer);
     generate_size(writer);
     generate_serialize(writer);
     generate_serialize_into_vector(writer);
@@ -36,5 +37,12 @@ fn generate_size(writer: &mut Writer) {
     writer.write_with_offset("uint32_t size()");
     writer.scope_in();
     writer.write_line("return native_.size();");
+    writer.scope_out(false);
+}
+
+fn generate_init(writer: &mut Writer) {
+    writer.write_with_offset("void init()");
+    writer.scope_in();
+    writer.write_line("native_.init();");
     writer.scope_out(false);
 }

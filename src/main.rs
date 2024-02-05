@@ -114,27 +114,27 @@ pub struct EnumConstantMemory {
 #[derive(Debug, Clone)]
 pub struct EnumMemory {
     name: String,
-    underlaying_type: NativeType,
+    underlaying_type: Native,
     constants: Vec<EnumConstantMemory>,
 }
 
 #[derive(Debug, Clone)]
 pub struct ArrayDimensionReference {
-    origin: Rc<NativeType>,
+    origin: Rc<Native>,
     size: Rc<StructMemberMemory>,
     array: Rc<StructMemberMemory>
 }
 
 #[derive(Debug, Clone)]
 pub struct ViewKeyReference {
-    native_key: Rc<NativeType>,
+    native_key: Rc<Native>,
     key: Rc<StructMemberMemory>,
     view: Rc<StructMemberMemory>
 }
 
 #[derive(Debug, Clone)]
 pub struct StructMemberSizeReference {
-    native: Rc<NativeType>,
+    native: Rc<Native>,
     origin: Rc<StructMemberMemory>,
     member: Rc<StructMemberMemory>
 }
@@ -150,7 +150,7 @@ pub enum SizeArithmetics {
 
 #[derive(Debug, Clone)]
 pub struct StructMemberSizeArithmetics {
-    native: Rc<NativeType>,
+    native: Rc<Native>,
     arithmetics: Vec<SizeArithmetics>
 }
 
@@ -170,8 +170,14 @@ struct Bits {
 #[derive(Debug, Clone, Default)]
 pub struct BitMask {
     name: String,
-    native: NativeType,
+    native: Native,
     bits: Vec<Bits>
+}
+
+
+#[derive(Debug, Clone, Default)]
+pub struct Native {
+    typ: NativeType
 }
 
 #[derive(Debug, Clone, variation::Variation)]
@@ -221,10 +227,6 @@ pub struct MemoryDeclaration {
 
 pub trait MemoryDetails {
     fn exact_size(&self) -> Option<usize>;
-    fn max_size(&self) -> Option<usize>;
-    fn buffer_size(&self) -> Option<usize>;
-    fn submembers(&self) -> usize;
-    fn context_size(&self) -> usize;
     fn is_sized(&self) -> bool {
         self.exact_size().is_some()
     }
@@ -245,7 +247,7 @@ pub struct Memory {
 
 #[derive(Debug, variation::Variation)]
 pub enum MemoryType {
-    Native(NativeType),
+    Native(Native),
     BitMask(Rc<BitMask>),
     Struct(Rc<RefCell<StructMemory>>),
     View(ViewMemory),
