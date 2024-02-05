@@ -598,12 +598,12 @@ struct PwrSrc_MemoryClear {
 }
 
 struct PwrSrc_NewFirmwareData {
-    byte0 : u8 = hE0,
-    size: u8 = 1,
-    address: u24,
-    length: u16 = data.dimension,
-    data: [u8],
-    crc: u16
+    byte0 :     u8 = hE0,
+    size:       u8 = 1, # TODO: what value is here
+    address:    u24,
+    length:     u16 = data.size,
+    data:       [u8],
+    crc:        u16
 }
 
 struct PwrSrc_ConfirmFWBlockReception {
