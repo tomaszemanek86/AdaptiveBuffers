@@ -22,7 +22,7 @@ namespace abf {
     }
 
     inline uint32_t get_u24_bit(uint8_t index) {
-        uint32_t b = 0b00000000100000000000000000000000;
+        uint32_t b = 0b10000000000000000000000000000000;
         return b >> index;
     }
 
