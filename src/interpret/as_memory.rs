@@ -229,7 +229,7 @@ impl AsMemory for View {
 impl AsMemory for BitMask {
     fn as_memory(&self, others: &Vec<MemoryDeclaration>) -> Result<Memory, InterpretError> {
         let mut bit_mask = self.clone();
-        bit_mask.native = self.native.typ.as_unknown().unwrap().as_memory(others)?.memory.as_native().unwrap().clone();
+        bit_mask.native = self.native.typ.as_unknown().unwrap().as_memory(others)?.memory.as_native().unwrap().typ.no_swap();
         for mask in &mut bit_mask.bits {
             for bit_op in &mut mask.bits {
                 if let Some(value) = bit_op.as_value_mut() {

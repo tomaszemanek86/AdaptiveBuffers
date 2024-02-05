@@ -39,6 +39,11 @@ impl NativeType {
             Self::U24 => 3,
             Self::U32 => 4,
             Self::U64 => 8,
+            Self::NoSwapU8 => 1,
+            Self::NoSwapU16 => 2,
+            Self::NoSwapU24 => 3,
+            Self::NoSwapU32 => 4,
+            Self::NoSwapU64 => 8,
             Self::ConstU8(_) => 1,
             Self::ConstU16(_) => 2,
             Self::ConstU24(_) => 3,
@@ -78,6 +83,17 @@ impl NativeType {
 
     pub fn native(&self) -> Native {
         Native { typ: self.clone() }
+    }
+
+    pub fn no_swap(&self) -> Native {
+        match self {
+            Self::U8 => Self::NoSwapU8.native(),
+            Self::U16 => Self::NoSwapU16.native(),
+            Self::U24 => Self::NoSwapU24.native(),
+            Self::U32 => Self::NoSwapU32.native(),
+            Self::U64 => Self::NoSwapU64.native(),
+            _ => panic!("cannot make no-swap native type")
+        }
     }
 }
 

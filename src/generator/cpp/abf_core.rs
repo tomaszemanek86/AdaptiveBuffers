@@ -140,6 +140,46 @@ namespace abf {
         bool set_;
     };
 
+    template <typename TData, uint32_t Size>
+    class NativeNoSwapSerializer {
+    public:
+        using Data = TData;
+
+        NativeNoSwapSerializer() : data_(), set_(false) {}
+
+        uint32_t serialize(uint8_t* dest) {
+            if (!set_) {
+                throw std::runtime_error(\"Not set\");
+            }
+            std::memcpy(dest, &data_, Size);
+            return Size;
+        }
+
+        void set_data(TData data) {
+            data_ = data;
+            set_ = true;
+        }
+
+        uint32_t size() {
+            return Size;
+        }
+
+        TData data() {
+            if (!set_) {
+                throw std::runtime_error(\"Not set\");
+            }
+            return data_;
+        }
+
+        void init() {
+            set_ = false;
+        }
+
+    private:
+        TData data_;
+        bool set_;
+    };
+
     template <typename TSerializer, typename TValue, TValue Value>
     class ConstantSerializer {
     public:
@@ -440,6 +480,45 @@ namespace abf {
         uint8_t *source_;
     };
 
+    template <typename TData, uint32_t Size>
+    class NativeNoSwapDeserializer {
+    public:
+        NativeNoSwapDeserializer() : source_(nullptr) {}
+        NativeNoSwapDeserializer(uint8_t* source) : source_(source) {}
+
+        TData get_data() {
+            if (!_deserialized()) {
+                throw std::runtime_error(\"Source not set\");
+            }
+            TData value = 0;
+            std::memcpy(&value, source_, Size);
+            return value;
+        }
+
+        void _set_source(uint8_t *source) {
+            source_ = source;
+        }
+
+        bool _source_set() {
+            return source_ != nullptr;
+        }
+
+        bool _deserialized() {
+            return source_ != nullptr;
+        }
+
+        uint8_t* _end() {
+            return source_ + Size;
+        }
+
+        void init() {
+            source_ = nullptr;
+        }
+
+    private:
+        uint8_t *source_;
+    };
+
     template <typename TDeserialzer, uint32_t Size>
     class ArrayDeserializer {
     public:
@@ -705,3 +784,4 @@ inline void copy(void* dest, void* source, size_t size) {
     }
 }
 ";
+
