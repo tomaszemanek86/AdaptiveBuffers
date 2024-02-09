@@ -17,3 +17,9 @@ impl Default for BitArithmetic {
         BitArithmetic::Value(0)
     }
 }
+
+impl Default for OverrideEndian {
+    fn default() -> Self {
+        Self::Default
+    }
+}

@@ -89,10 +89,18 @@ pub enum TypVariant {
     UnknownType,
 }
 
+#[derive(Debug, Clone, variation::Variation)]
+pub enum OverrideEndian {
+    BigEndian,
+    LittleEndian,
+    Default,
+}
+
 #[derive(Debug, Default, Clone)]
 pub struct Typ {
     pub typ: TypVariant,
     pub array_size: ArraySize,
+    pub endian: OverrideEndian,
 }
 
 #[derive(Debug, Clone, Default)]
@@ -143,6 +151,10 @@ struct Separated<'a, TData, TParser: Parser + ParserData<TData>> {
 struct Optional<TParser: Parser> {
     parser: TParser,
     parsed: bool,
+}
+
+struct TryParse<'a, TParser: Parser> {
+    parser: &'a mut TParser
 }
 
 #[derive(Debug, Default, Clone)]

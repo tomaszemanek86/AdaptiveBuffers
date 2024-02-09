@@ -585,7 +585,7 @@ struct PwrSrc_ConfirmFWBlockReception_Response {
 
 struct PwrSrc_ProgramMCU_Request {
     command: u8 = hE2,
-    byte0:      u8 = hE0,
+    byte0:   u8 = hE0,
     day: u8,
     month: u8,
     year: u8,
@@ -596,7 +596,7 @@ struct PwrSrc_ProgramMCU_Request {
 
 struct PwrSrc_RevertToPreviousFW_Request {
     command: u8 = hE3,
-    byte0: u8 = hE0
+    byte0: u8   = hE0
 }
 
 struct PwrSrc_SaveActualFW {

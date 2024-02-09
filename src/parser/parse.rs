@@ -136,6 +136,15 @@ impl<TParser: Parser> Parser for Optional<TParser> {
     }
 }
 
+impl<'b, TParser: Parser> Parser for TryParse<'b, TParser> {
+    fn parse<'a>(&mut self, text: &CodeView) -> Result<CodeView, Option<ParseError>> {
+        if let Ok(res) = self.parser.parse(text) {
+            return Ok(res);
+        }
+        Ok(text.offset(0))
+    }
+}
+
 impl<'b> Parser for Sequence<'b> {
     fn parse<'a>(&mut self, text: &CodeView) -> Result<CodeView, Option<ParseError>> {
         let mut count = 0;
@@ -406,6 +415,30 @@ impl Parser for TypVariant {
     }
 }
 
+impl Parser for OverrideEndian {
+    fn parse<'a>(&mut self, text: &CodeView) -> Result<CodeView, Option<ParseError>> {
+        let mut big = Token::new("big", false);
+        let mut little = Token::new("little", false);
+        let mut possibilities: [&mut dyn Parser; 2] = [
+            &mut big,
+            &mut little
+        ];
+        let mut big_or_little = Or::new(&mut possibilities, "big or little not set");
+        let mut at_sign = Token::new("@", false);
+        let res = Sequence::new(&mut [
+            &mut at_sign,
+            &mut WhiteChars::new(0),
+            &mut big_or_little
+        ]).parse(text)?;
+        match big_or_little.index {
+            0 => *self = OverrideEndian::BigEndian,
+            1 => *self = OverrideEndian::LittleEndian,
+            _ => panic!("unexpected value")
+        }
+        Ok(res)
+    }
+}
+
 impl Parser for Typ {
     fn parse<'b>(&mut self, text: &CodeView) -> Result<CodeView, Option<ParseError>> {
         self.array_size = ArraySize::No;
@@ -414,6 +447,8 @@ impl Parser for Typ {
             &mut Token::new("[", true),
             &mut WhiteChars::default(),
             &mut self.typ,
+            &mut WhiteChars::default(),
+            &mut TryParse::new(&mut self.endian),
             &mut WhiteChars::default(),
             &mut Or::new(&mut [
                 &mut Sequence::new(&mut [
@@ -1281,5 +1316,13 @@ mod test {
         assert!(parser.bits[1].bits[1].is_and());
         assert!(parser.bits[1].bits[2].is_not());
         assert!(parser.bits[1].bits[3].is_value());
+    }
+
+    #[test]
+    fn overide_endian() {
+        let mut parser = OverrideEndian::default();
+        let res = parser.parse(&CodeView::from("@ little"));
+        assert_eq!(res.is_ok(), true);
+        assert!(parser.is_little_endian());
     }
 }

@@ -78,3 +78,9 @@ impl<TParser: Parser> Optional<TParser> {
         }
     }
 }
+
+impl<'a, TParser: Parser> TryParse<'a, TParser> {
+    pub fn new(parser: &'a mut TParser) -> Self {
+        Self { parser  }
+    }
+}
