@@ -29,7 +29,7 @@ impl View {
                             && t.typ.typ.as_int().unwrap().signed == i.signed
                     }
                     TypeVariant::Struct(s) => {
-                        t.typ.typ.is_struct() && t.typ.typ.as_struct().unwrap().borrow().name.data == s.borrow().name.data
+                        t.typ.typ.is_struct() && t.typ.typ.as_struct().unwrap().borrow().name() == s.borrow().name()
                     }
                     TypeVariant::View(v) => {
                         t.typ.typ.is_view() && t.typ.typ.as_view().unwrap().borrow().name == v.borrow().name
@@ -74,7 +74,7 @@ impl View {
         self.types
             .iter()
             .all(|ti| match &ti.typ.typ {
-                TypeVariant::Struct(t) => known_types.contains(&t.borrow().name),
+                TypeVariant::Struct(t) => known_types.contains(&t.borrow().name()),
                 TypeVariant::Enum(_) => true,
                 TypeVariant::View(t) => known_types.contains(&t.borrow().name),
                 TypeVariant::Int(_) => true,

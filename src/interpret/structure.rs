@@ -5,6 +5,9 @@ use self::parser::SizeArithmetics;
 use super::*;
 
 impl Struct {
+    pub fn name(&self) -> &String {
+        &self.parsed.name
+    }
     pub fn check_type(&self, types: &Types) -> Result<(), InterpretError> {
         self.check_unique_member_names()?;
         self.check_references(types)?;
@@ -147,7 +150,7 @@ impl Struct {
                     }
                 };
                 match &mi.typ.typ {
-                    TypeVariant::Struct(t) => known_types.contains(&t.borrow().name),
+                    TypeVariant::Struct(t) => known_types.contains(t.borrow().name()),
                     TypeVariant::Enum(t) => known_types.contains(&t.name),
                     TypeVariant::View(t) => known_types.contains(&t.borrow().name),
                     TypeVariant::Int(_) => return true,

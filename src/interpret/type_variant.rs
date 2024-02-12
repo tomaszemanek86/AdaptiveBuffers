@@ -28,7 +28,7 @@ impl TypeVariant {
         // create structure
         Ok(TypeVariant::Struct(Rc::new(RefCell::new(DataView::new(
             Struct {
-                name: s.name.clone(),
+                parsed: s.clone(),
                 members: s
                     .members
                     .iter()

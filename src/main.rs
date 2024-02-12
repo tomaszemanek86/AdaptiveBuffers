@@ -71,13 +71,15 @@ pub struct StructMemberMemory {
     pub name: String,
     pub index: usize,
     pub memory: RefCell<Memory>,
-    pub structure: Rc<RefCell<StructMemory>>
+    pub structure: Rc<RefCell<StructMemory>>,
+    pub parsed: DataView<parser::Struct>,
 }
 
 #[derive(Debug)]
 pub struct StructMemory {
     name: String,
     fields: Vec<Rc<StructMemberMemory>>,
+    parsed: DataView<parser::Struct>
 }
 
 #[derive(Debug)]
@@ -177,7 +179,8 @@ pub struct BitMask {
 
 #[derive(Debug, Clone, Default)]
 pub struct Native {
-    typ: NativeType
+    typ: NativeType,
+    endian: Option<bool>
 }
 
 #[derive(Debug, Clone, variation::Variation)]

@@ -9,7 +9,8 @@ impl<TData: AsMemory + Default + Clone> AsMemory for DataView<TData> {
 impl AsMemory for Struct {
     fn as_memory(&self, others: &Vec<MemoryDeclaration>) -> Result<Memory, InterpretError> {
         let mut structure = Rc::new(RefCell::new(StructMemory {
-            name: self.name.data.clone(),
+            name: self.name().to_string(),
+            parsed: self.parsed.clone(),
             fields: Vec::new(),
         }));
         for member in &self.members {
@@ -19,7 +20,8 @@ impl AsMemory for Struct {
                         name: member.name.data.clone(),
                         index: member.index,
                         memory: RefCell::new(member.typ.as_memory(others)?),
-                        structure: structure.clone()
+                        structure: structure.clone(),
+                        parsed: self.parsed.clone()
                     }));
                     continue
                 }
@@ -28,7 +30,8 @@ impl AsMemory for Struct {
                 name: member.name.data.clone(),
                 index: member.index,
                 memory: RefCell::new(member.typ.as_memory(others)?),
-                structure: structure.clone()
+                structure: structure.clone(),
+                parsed: self.parsed.clone()
             }));
         }
         // resolve view reference keys
@@ -43,36 +46,47 @@ impl AsMemory for Struct {
                     StructMemberConstant::ViewReferenceKey(mr) => {
                         let index = self.get_member_index_by_name(&mr.member_name.data).unwrap();
                         let native_key = Rc::new(self.members[i].typ.as_memory(others)?.memory.as_native().unwrap().clone());
-                        *f.memory.borrow_mut() = MemoryType::Native(NativeType::ViewKeyReference(
-                                ViewKeyReference {
-                                    native_key: native_key,
-                                    key: f.clone(),
-                                    view: structure.borrow().fields[index].clone()
-                                }
-                            ).native()).non_array_memory();
-        
+                        *f.memory.borrow_mut() = MemoryType::Native(
+                            Native { 
+                                typ: NativeType::ViewKeyReference(
+                                        ViewKeyReference {
+                                            native_key: native_key.clone(),
+                                            key: f.clone(),
+                                            view: structure.borrow().fields[index].clone()
+                                        }
+                                    ),
+                                endian: native_key.endian.clone()
+                            }).non_array_memory();
                     },
                     StructMemberConstant::ArrayDimension(mr) => {
                         let index = self.get_member_index_by_name(&mr.member_name.data).unwrap();
                         let native = Rc::new(self.members[i].typ.as_memory(others)?.memory.as_native().unwrap().clone());
-                        *f.memory.borrow_mut() = MemoryType::Native(NativeType::ArrayDimensionReference(
-                                ArrayDimensionReference {
-                                    origin: native,
-                                    size: f.clone(),
-                                    array: structure.borrow().fields[index].clone()
-                                }
-                            ).native()).non_array_memory();
+                        *f.memory.borrow_mut() = MemoryType::Native(
+                            Native {
+                                typ: NativeType::ArrayDimensionReference(
+                                    ArrayDimensionReference {
+                                        origin: native.clone(),
+                                        size: f.clone(),
+                                        array: structure.borrow().fields[index].clone()
+                                    }
+                                ),
+                                endian: native.endian.clone()
+                            }).non_array_memory();
                     },
                     StructMemberConstant::Size(mr) => {
                         let index = self.get_member_index_by_name(&mr.member_name.data).unwrap();
                         let native = Rc::new(self.members[i].typ.as_memory(others)?.memory.as_native().unwrap().clone());
-                        *f.memory.borrow_mut() = MemoryType::Native(NativeType::StructMemberSize(
-                                StructMemberSizeReference {
-                                    native: native,
-                                    origin: f.clone(),
-                                    member: structure.borrow().fields[index].clone()
-                                }
-                            ).native()).non_array_memory();
+                        *f.memory.borrow_mut() = MemoryType::Native(
+                            Native {
+                                typ: NativeType::StructMemberSize(
+                                    StructMemberSizeReference {
+                                        native: native.clone(),
+                                        origin: f.clone(),
+                                        member: structure.borrow().fields[index].clone()
+                                    }
+                                ),
+                                endian: native.endian.clone()
+                            }).non_array_memory();
                     },
                     StructMemberConstant::EnumMemberValue(emv) => {
                         let value = others
@@ -104,25 +118,28 @@ impl AsMemory for Struct {
                                 _ => continue
                             }
                         }
-                        *f.memory.borrow_mut() = MemoryType::Native(NativeType::StructMemberSizeArithmetics(
-                            StructMemberSizeArithmetics {
-                                native: native,
-                                arithmetics: sa.iter().map(|it| match &it.data {
-                                    parser::SizeArithmetics::Plus => SizeArithmetics::Plus,
-                                    parser::SizeArithmetics::Minus => SizeArithmetics::Minus,
-                                    parser::SizeArithmetics::MemberSizeReference(mr) => {
-                                        let index = self.get_member_index_by_name(&mr.member_name.data).unwrap();
-                                        SizeArithmetics::StructMemberSizeReference(structure.borrow().fields[index].clone())
-                                    },
-                                    parser::SizeArithmetics::MemberValueReference(mr) => {
-                                        let index = self.get_member_index_by_name(&mr.member_name.data).unwrap();
-                                        SizeArithmetics::StructMemberValueReference(structure.borrow().fields[index].clone())
-                                    },
-                                    parser::SizeArithmetics::Usize(value) => SizeArithmetics::Usize(*value)
-                                }).collect()
-                            }
-                        ).native()).non_array_memory();
-                        
+                        *f.memory.borrow_mut() = MemoryType::Native(
+                            Native {
+                                typ: NativeType::StructMemberSizeArithmetics(
+                                    StructMemberSizeArithmetics {
+                                        native: native.clone(),
+                                        arithmetics: sa.iter().map(|it| match &it.data {
+                                            parser::SizeArithmetics::Plus => SizeArithmetics::Plus,
+                                            parser::SizeArithmetics::Minus => SizeArithmetics::Minus,
+                                            parser::SizeArithmetics::MemberSizeReference(mr) => {
+                                                let index = self.get_member_index_by_name(&mr.member_name.data).unwrap();
+                                                SizeArithmetics::StructMemberSizeReference(structure.borrow().fields[index].clone())
+                                            },
+                                            parser::SizeArithmetics::MemberValueReference(mr) => {
+                                                let index = self.get_member_index_by_name(&mr.member_name.data).unwrap();
+                                                SizeArithmetics::StructMemberValueReference(structure.borrow().fields[index].clone())
+                                            },
+                                            parser::SizeArithmetics::Usize(value) => SizeArithmetics::Usize(*value)
+                                        }).collect()
+                                    }
+                                ), 
+                            endian: native.endian.clone()
+                        }).non_array_memory();
                     }
                 } 
             }
@@ -168,19 +185,19 @@ impl AsMemory for Int {
     fn as_memory(&self, _others: &Vec<MemoryDeclaration>) -> Result<Memory, InterpretError> {
         if self.signed {
             match self.bytes {
-                8 => Ok(MemoryType::Native(NativeType::I8.native()).non_array_memory()),
-                16 => Ok(MemoryType::Native(NativeType::I16.native()).non_array_memory()),
-                32 => Ok(MemoryType::Native(NativeType::I32.native()).non_array_memory()),
-                64 => Ok(MemoryType::Native(NativeType::I64.native()).non_array_memory()),
+                8 => Ok(MemoryType::Native(Native { typ: NativeType::I8, endian: None }).non_array_memory()),
+                16 => Ok(MemoryType::Native(Native { typ: NativeType::I16, endian: None }).non_array_memory()),
+                32 => Ok(MemoryType::Native(Native { typ: NativeType::I32, endian: None }).non_array_memory()),
+                64 => Ok(MemoryType::Native(Native { typ: NativeType::I64, endian: None }).non_array_memory()),
                 _ => Err(InterpretError::UnknownIntSize(self.bytes)),
             }
         } else {
             match self.bytes {
-                8 => Ok(MemoryType::Native(NativeType::U8.native()).non_array_memory()),
-                16 => Ok(MemoryType::Native(NativeType::U16.native()).non_array_memory()),
-                24 => Ok(MemoryType::Native(NativeType::U24.native()).non_array_memory()),
-                32 => Ok(MemoryType::Native(NativeType::U32.native()).non_array_memory()),
-                64 => Ok(MemoryType::Native(NativeType::U64.native()).non_array_memory()),
+                8 => Ok(MemoryType::Native(Native { typ: NativeType::U8, endian: None }).non_array_memory()),
+                16 => Ok(MemoryType::Native(Native { typ: NativeType::U16, endian: None }).non_array_memory()),
+                24 => Ok(MemoryType::Native(Native { typ: NativeType::U24, endian: None }).non_array_memory()),
+                32 => Ok(MemoryType::Native(Native { typ: NativeType::U32, endian: None }).non_array_memory()),
+                64 => Ok(MemoryType::Native(Native { typ: NativeType::U64, endian: None }).non_array_memory()),
                 _ => Err(InterpretError::UnknownIntSize(self.bytes)),
             }
         }

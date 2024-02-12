@@ -855,7 +855,7 @@ impl Parser for BitMask {
             &mut Token::new("}", true),
         ])
         .parse(text)?;
-        self.native = Native { typ: NativeType::Unknown(native) };
+        self.native = Native { typ: NativeType::Unknown(native), endian: None };
         self.bits = bit_masks.data;
         Ok(res)
     }

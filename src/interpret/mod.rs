@@ -98,7 +98,7 @@ pub struct StructMember {
 
 #[derive(Default, Clone)]
 pub struct Struct {
-    name: DataView<String>,
+    parsed: DataView<parser::Struct>,
     members: Vec<StructMember>,
 }
 
