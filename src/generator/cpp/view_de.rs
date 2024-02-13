@@ -25,7 +25,7 @@ pub fn generate_view_deserializer(m: &ViewMemory, protocol_endian: &EndianSettin
 }
 
 fn generate_set_source(m: &ViewMemory, writer: &mut Writer) {
-    writer.write_with_offset("void _set_source(uint8_t *source)");
+    writer.write_with_offset("void set_source(uint8_t *source)");
     writer.scope_in();
     writer.write_line("source_ = source;");
 
@@ -34,7 +34,7 @@ fn generate_set_source(m: &ViewMemory, writer: &mut Writer) {
     writer.write_with_offset("switch (type_id_)");
     writer.scope_in();
     for t in &m.types {
-        writer.write_line(&format!("case {}: types_.{}._set_source(source_);",
+        writer.write_line(&format!("case {}: types_.{}.set_source(source_);",
             t.constant.get_value(),
             t.variable()
         ));
@@ -152,7 +152,7 @@ fn generate_get_body(m: &ViewMemory, i: usize, writer: &mut Writer) {
     
     writer.write_line(&format!("type_id_ = {};", t.constant.get_value()));
     writer.write_line("deserialized_ = true;");
-    writer.write_line(&format!("types_.{}._set_source(source_);", t.variable()));
+    writer.write_line(&format!("types_.{}.set_source(source_);", t.variable()));
 }
 
 fn generate_get_native(m: &ViewMemory, i: usize, writer: &mut Writer) {

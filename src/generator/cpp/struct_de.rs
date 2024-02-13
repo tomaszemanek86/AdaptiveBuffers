@@ -57,7 +57,7 @@ fn generate_ctor(m: &StructMemory, default: bool, protocol_endian: &EndianSettin
     let _ = m.fields.iter()
             .filter(|f| f.default_constructible_deserializer())
             .inspect(|f| writer.write_line(&format!("{}_.init();", f.name)));
-    writer.write_line(&format!("_set_source({});", if default { "source" } else { "nullptr" }));
+    writer.write_line(&format!("set_source({});", if default { "source" } else { "nullptr" }));
     for f in &m.fields {
         if let Some(asr) = f.get_array_size_reference() {
             writer.write_line(&format!("{}_.set_size_deserializer(&{}_);", f.name, asr.name));
@@ -92,7 +92,7 @@ fn generate_if_not_prev_deserialized_throw(m: &StructMemory, i: usize, writer: &
         writer.scope_in();
         writer.write_line(&format!("throw std::runtime_error(\"{}\");", m.fields[i - 1].as_ref().name));
         writer.scope_out(false);
-        writer.write_line(&format!("{}_._set_source({}_._end());",
+        writer.write_line(&format!("{}_.set_source({}_._end());",
             m.fields[i].as_ref().name,
             m.fields[i - 1].as_ref().name));
     }
@@ -114,7 +114,7 @@ fn generate_empty_struct_methods(
     writer.write_line("return source_ != nullptr;");
     writer.scope_out(false);
 
-    writer.write_with_offset("void _set_source(uint8_t *source) ");
+    writer.write_with_offset("void set_source(uint8_t *source) ");
     writer.scope_in();
     writer.write_line("source_ = source;");
     writer.scope_out(false);
@@ -148,12 +148,12 @@ fn generate_deserialize_methods(
     writer: &mut Writer
 ) {
     if group_id == 0 {
-        writer.write_with_offset(&format!("void _set_source(uint8_t* source)"));
+        writer.write_with_offset(&format!("void set_source(uint8_t* source)"));
         writer.scope_in();
         writer.write_line("source_ = source;");
-        writer.write_line(&format!("{}_._set_source(source_);", m.fields[0].name));
+        writer.write_line(&format!("{}_.set_source(source_);", m.fields[0].name));
         for i in 1..(i1 + 1) {
-            writer.write_line(&format!("{}_._set_source({}_._end());", m.fields[i].name, m.fields[i - 1].name));
+            writer.write_line(&format!("{}_.set_source({}_._end());", m.fields[i].name, m.fields[i - 1].name));
         }
         writer.scope_out(false);
     } else {
@@ -162,7 +162,7 @@ fn generate_deserialize_methods(
         writer.write_line(&format!("if ({}_._deserialized()) return true;", m.fields[i0].name));
         writer.write_line(&format!("if (!{}_._deserialized()) return false;", m.fields[i0 - 1].name));
         for i in i0..(i1 + 1) {
-            writer.write_line(&format!("{}_._set_source({}_._end());", m.fields[i].name, m.fields[i - 1].name));
+            writer.write_line(&format!("{}_.set_source({}_._end());", m.fields[i].name, m.fields[i - 1].name));
         }
         writer.write_line("return true;");
         writer.scope_out(false);

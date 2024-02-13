@@ -526,7 +526,7 @@ namespace abf {
             return value;
         }
 
-        void _set_source(uint8_t *source) {
+        void set_source(uint8_t *source) {
             source_ = source;
         }
 
@@ -569,7 +569,7 @@ namespace abf {
             return value;
         }
 
-        void _set_source(uint8_t *source) {
+        void set_source(uint8_t *source) {
             source_ = source;
         }
 
@@ -608,14 +608,14 @@ namespace abf {
 
         ArrayDeserializer(uint8_t* source) {
             init();
-            _set_source(source);
+            set_source(source);
         }
 
         TDeserialzer& get(uint32_t i) {
             if (!deserializers_[i]._source_set()) {
                 if (i > 0) {
                     if (deserializers_[i - 1]._deserialized()) {
-                        deserializers_[i]._set_source(deserializers_[i - 1]._end());
+                        deserializers_[i].set_source(deserializers_[i - 1]._end());
                     } else {
                         throw std::runtime_error(\"Previous member not deserialized\");
                     }
@@ -632,8 +632,8 @@ namespace abf {
             }
         }
 
-        void _set_source(uint8_t *source) {
-            deserializers_[0]._set_source(source);
+        void set_source(uint8_t *source) {
+            deserializers_[0].set_source(source);
         }
 
         bool _source_set() {
@@ -671,7 +671,7 @@ namespace abf {
 
         DynArrayDeserializer(uint8_t* source) {
             init();
-            _set_source(source);
+            set_source(source);
         }
 
         TDeserialzer& get(uint32_t i) {
@@ -684,11 +684,11 @@ namespace abf {
                     if (!_source_set()) {
                         throw std::runtime_error(\"Source not set\");
                     }
-                    deserializers_[0]._set_source(source_);
+                    deserializers_[0].set_source(source_);
                 }
                 if (i > 0) {
                     if (deserializers_[i - 1]._deserialized()) {
-                        deserializers_[i]._set_source(deserializers_[i - 1]._end());
+                        deserializers_[i].set_source(deserializers_[i - 1]._end());
                     } else {
                         throw std::runtime_error(\"Previous member not deserialized\");
                     }
@@ -701,7 +701,7 @@ namespace abf {
             deserializers_ = std::vector<TDeserialzer>();
         }
 
-        void _set_source(uint8_t *source) {
+        void set_source(uint8_t *source) {
             source_ = source;
         }
 
@@ -749,7 +749,7 @@ namespace abf {
 
         ArraySizedDeserializer(uint8_t* source) {
             init();
-            _set_source(source);
+            set_source(source);
         }
 
         ItemDeserializer& get(uint32_t i) {
@@ -766,8 +766,8 @@ namespace abf {
             array_ .init();
         }
 
-        void _set_source(uint8_t *source) {
-            array_._set_source(source);
+        void set_source(uint8_t *source) {
+            array_.set_source(source);
         }
 
         bool _source_set() {

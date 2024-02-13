@@ -47,9 +47,9 @@ fn generate_set_source(m: &BitMask, writer: &mut Writer) {
 }
 
 fn generate_source_set(m: &BitMask, writer: &mut Writer) {
-    writer.write_with_offset("void _set_source(uint8_t* source)");
+    writer.write_with_offset("void set_source(uint8_t* source)");
     writer.scope_in();
-    writer.write_line("native_._set_source(source);");
+    writer.write_line("native_.set_source(source);");
     writer.scope_out(false);
 }
 
