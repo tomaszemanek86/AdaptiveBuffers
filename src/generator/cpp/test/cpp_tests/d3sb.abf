@@ -576,8 +576,15 @@ struct PwrSrc_ConfirmFWBlockReception_Request {
     command: u8 = hE1
 }
 
+enum PwrSrcConfirmFWBlockStatus : u8 {
+    Ok = 0,
+    BadDescriptor = 1,
+    CrcError = 2,
+    FlashWriteError = 3
+}
+
 struct PwrSrc_ConfirmFWBlockReception_Response {
-    status: u8,
+    status: PwrSrcConfirmFWBlockStatus,
     address: u24,
     length: u16,
     corrupted_sector_addr: u64
