@@ -1,5 +1,7 @@
 use std::{fmt::format, io::Write};
 
+use self::parser::Endian;
+
 use super::*;
 
 mod writer;
@@ -30,8 +32,8 @@ trait CppMemoryDetail {
     fn user_value_serializable(&self) -> bool;
     fn directly_serializable(&self) -> bool;
     fn directly_deserializable(&self) -> bool;
-    fn serializer_typename(&self) -> String;
-    fn deserializer_typename(&self) -> String;
+    fn serializer_typename(&self, protocol_endian: &EndianSettings) -> String;
+    fn deserializer_typename(&self, protocol_endian: &EndianSettings) -> String;
     fn native_typename(&self) -> String;
     fn bytes(&self) -> Option<u32>;
     fn default_constructible_deserializer(&self) -> bool;
@@ -42,7 +44,7 @@ trait CppMemoryDetail {
 
 }
 
-pub fn generate(m: &Vec<MemoryDeclaration>, byte_swap: bool, args: &Args) {
+pub fn generate(m: &Vec<MemoryDeclaration>, protocol_endian: &EndianSettings, args: &Args) {
     let output_namespace = std::path::Path::new(&args.protofile)
         .file_stem()
         .expect("could not extract stem")
@@ -64,24 +66,24 @@ pub fn generate(m: &Vec<MemoryDeclaration>, byte_swap: bool, args: &Args) {
         match &md.memory.memory {
             MemoryType::Native(_) => panic!("Unexpected"),
             MemoryType::Struct(s) => {
-                struct_ser::generate_struct_serializer(&s.borrow(), &mut writer);
-                struct_de::generate_struct_deserializer(&s.borrow(), &mut writer);
+                struct_ser::generate_struct_serializer(&s.borrow(), protocol_endian, &mut writer);
+                struct_de::generate_struct_deserializer(&s.borrow(), protocol_endian, &mut writer);
             },
             MemoryType::View(v) => {
-                view_ser::generate_view_serializer(v, &mut writer);
-                view_de::generate_view_deserializer(v, &mut writer);
+                view_ser::generate_view_serializer(v, protocol_endian, &mut writer);
+                view_de::generate_view_deserializer(v, protocol_endian, &mut writer);
             },
             MemoryType::Enum(e) => {
                 enum_type::generate_enum_type(e, &mut writer);
-                enum_ser::generate_enum_serializer(e, &mut writer);
-                enum_de::generate_enum_deserializer(e, &mut writer);
+                enum_ser::generate_enum_serializer(e, protocol_endian, &mut writer);
+                enum_de::generate_enum_deserializer(e, protocol_endian, &mut writer);
             },
             MemoryType::BitMask(b) => {
-                bit_mask_ser::generate_bit_mask_serializer(&b, &mut writer);
-                bit_mask_de::generate_bit_mask_deserializer(&b, &mut writer);
+                bit_mask_ser::generate_bit_mask_serializer(&b, protocol_endian, &mut writer);
+                bit_mask_de::generate_bit_mask_deserializer(&b, protocol_endian, &mut writer);
             },
         }
-        factory::generate_factory(md, &mut writer);
+        factory::generate_factory(md, protocol_endian, &mut writer);
     }
     writer.write_line("}");
     

@@ -4,7 +4,7 @@ struct DifferentEndians {
     member_8 : u8,
     member_8b : u8 @ big,
     member_8l : u8 @ little,
-    member_16 : u16 = 20,
-    member_16b : u16 @ big = 20,
-    member_16l : u16 @ little = 20
+    member_16 : u16 = 3,
+    member_16b : u16 @ big = 3,
+    member_16l : u16 @ little = 3
 }

@@ -17,7 +17,7 @@ UTEST(override_endian, serde_second_0) {
     ASSERT_EQ(buffer[0], 1);
     ASSERT_EQ(buffer[1], 1);
     ASSERT_EQ(buffer[2], 128);
-    ASSERT_EQ(*reinterpret_cast<uint16_t*>(&buffer[3]), 1);
-    ASSERT_EQ(*reinterpret_cast<uint16_t*>(&buffer[5]), 1);
-    ASSERT_EQ(*reinterpret_cast<uint16_t*>(&buffer[7]), 32768);
+    ASSERT_EQ(*reinterpret_cast<uint16_t*>(&buffer[3]), 3);
+    ASSERT_EQ(*reinterpret_cast<uint16_t*>(&buffer[5]), 3);
+    ASSERT_EQ(*reinterpret_cast<uint16_t*>(&buffer[7]), 49152);
 }

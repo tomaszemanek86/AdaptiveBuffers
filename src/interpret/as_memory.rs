@@ -138,7 +138,7 @@ impl AsMemory for Struct {
                                         }).collect()
                                     }
                                 ), 
-                            endian: native.endian.clone()
+                            endian: OverrideEndian::Default // specified by native memeber
                         }).non_array_memory();
                     }
                 } 
@@ -282,9 +282,13 @@ impl AsMemory for TypeVariant {
 
 impl AsMemory for Type {
     fn as_memory(&self, others: &Vec<MemoryDeclaration>) -> Result<Memory, InterpretError> {
-        Ok(Memory {
+        let mut memory = Memory {
             memory: self.typ.as_memory(others)?.memory,
             array_size: self.array_size.clone()
-        })
+        };
+        if let Some(native) = memory.memory.as_native_mut() {
+            native.endian = self.endian.clone();
+        }
+        Ok(memory)
     }
 }

@@ -2,35 +2,35 @@ use std::ops::Deref;
 
 use super::*;
 
-pub fn generate_bit_mask_serializer(m: &BitMask, writer: &mut Writer) {
-    writer.write(&format!("class {}", m.serializer_typename()));
+pub fn generate_bit_mask_serializer(m: &BitMask, protocol_endian: &EndianSettings, writer: &mut Writer) {
+    writer.write(&format!("class {}", m.serializer_typename(protocol_endian)));
     writer.scope_in();
     writer.public();
-    generate_ctor(m, writer);
+    generate_ctor(m, protocol_endian, writer);
     for mask in &m.bits {
-        generate_with_method(m, mask, writer);
+        generate_with_method(m, mask, protocol_endian, writer);
     }
     generate_init(writer);
     generate_size(writer);
     generate_serialize(writer);
     generate_serialize_into_vector(writer);
     writer.private();
-    writer.write_line(&format!("{} native_;", m.native.serializer_typename()));
+    writer.write_line(&format!("{} native_;", m.native.serializer_typename(protocol_endian)));
     writer.scope_out(true);
 }
 
-fn generate_ctor(m: &BitMask, writer: &mut Writer) {
-    writer.write_with_offset(&format!("{}() : native_() ", m.serializer_typename()));
+fn generate_ctor(m: &BitMask, protocol_endian: &EndianSettings, writer: &mut Writer) {
+    writer.write_with_offset(&format!("{}() : native_() ", m.serializer_typename(protocol_endian)));
     writer.scope_in();
     writer.write_line("native_.set_data(0);");
     writer.scope_out(false);
 }
 
-fn generate_with_method(m: &BitMask, mask: &Bits, writer: &mut Writer) {
+fn generate_with_method(m: &BitMask, mask: &Bits, protocol_endian: &EndianSettings, writer: &mut Writer) {
     if mask.bits.len() == 1 {
-        writer.write_with_offset(&format!("{}& with_{}(bool on)", m.serializer_typename(), mask.name));
+        writer.write_with_offset(&format!("{}& with_{}(bool on)", m.serializer_typename(protocol_endian), mask.name));
     } else {
-        writer.write_with_offset(&format!("{}& with_{}()", m.serializer_typename(), mask.name));
+        writer.write_with_offset(&format!("{}& with_{}()", m.serializer_typename(protocol_endian), mask.name));
     }
 
     writer.scope_in();

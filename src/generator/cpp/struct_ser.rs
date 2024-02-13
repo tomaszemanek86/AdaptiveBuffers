@@ -1,13 +1,13 @@
 use super::*;
 
-pub fn generate_struct_serializer(m: &StructMemory, writer: &mut Writer) {
-    writer.write(&format!("class {}", m.serializer_typename()));
+pub fn generate_struct_serializer(m: &StructMemory, protocol_endian: &EndianSettings, writer: &mut Writer) {
+    writer.write(&format!("class {}", m.serializer_typename(protocol_endian)));
     writer.scope_in();
     writer.public();
-    generate_ctor(m, writer);
+    generate_ctor(m, protocol_endian, writer);
     for i in 0..m.fields.len() {
         if m.fields[i].user_value_serializable() {
-            generate_with_method(m, i, writer);
+            generate_with_method(m, i, protocol_endian, writer);
         }
     }
     generate_size(m, writer);
@@ -16,13 +16,13 @@ pub fn generate_struct_serializer(m: &StructMemory, writer: &mut Writer) {
     generate_init(m, writer);
     writer.private();
     for i in 0..m.fields.len() {
-        generate_member_serialzier(m, i, writer);
+        generate_member_serialzier(m, i, protocol_endian, writer);
     }
     writer.scope_out(true);
 }
 
-fn generate_ctor(m: &StructMemory, writer: &mut Writer) {
-    writer.write_with_offset(&format!("{}()", m.serializer_typename()));
+fn generate_ctor(m: &StructMemory, protocol_endian: &EndianSettings, writer: &mut Writer) {
+    writer.write_with_offset(&format!("{}()", m.serializer_typename(protocol_endian)));
     let initialize_members = m.fields
         .iter()
         .map(|f| format!("{}_()", f.name))
@@ -44,11 +44,11 @@ fn generate_ctor(m: &StructMemory, writer: &mut Writer) {
     writer.scope_out(false)
 }
 
-fn generate_member_serialzier(m: &StructMemory, i: usize, writer: &mut Writer) {
-    writer.write_line(&format!("{} {}_;", m.fields[i].as_ref().serializer_typename(), m.fields[i].name));
+fn generate_member_serialzier(m: &StructMemory, i: usize, protocol_endian: &EndianSettings, writer: &mut Writer) {
+    writer.write_line(&format!("{} {}_;", m.fields[i].as_ref().serializer_typename(protocol_endian), m.fields[i].name));
 }
 
-fn generate_with_method(m: &StructMemory, i: usize, writer: &mut Writer) {
+fn generate_with_method(m: &StructMemory, i: usize, protocol_endian: &EndianSettings, writer: &mut Writer) {
     let sm = m.fields[i].as_ref();
     if sm.directly_serializable() {
         writer.write_with_offset(&format!("void with_{}({} value)",
@@ -60,7 +60,7 @@ fn generate_with_method(m: &StructMemory, i: usize, writer: &mut Writer) {
         writer.scope_out(false);
     } else {
         writer.write_with_offset(&format!("{}& with_{}()",
-            sm.serializer_typename(),
+            sm.serializer_typename(protocol_endian),
             sm.variable()));
         writer.scope_in();
         

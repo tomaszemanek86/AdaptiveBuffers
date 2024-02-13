@@ -1,12 +1,12 @@
 use super::*;
 
-pub fn generate_view_serializer(m: &ViewMemory, writer: &mut Writer) {
-    writer.write(&format!("class {}", m.serializer_typename()));
+pub fn generate_view_serializer(m: &ViewMemory, protocol_endian: &EndianSettings, writer: &mut Writer) {
+    writer.write(&format!("class {}", m.serializer_typename(protocol_endian)));
     writer.scope_in();
     writer.public();
-    generate_ctor(m, writer);
+    generate_ctor(m, protocol_endian, writer);
     for i in 0..m.types.len() {
-        generate_with_method(m, i, writer);
+        generate_with_method(m, i, protocol_endian, writer);
     }
     generate_serialize(m, writer);
     generate_serialize_into_vector(writer);
@@ -14,26 +14,26 @@ pub fn generate_view_serializer(m: &ViewMemory, writer: &mut Writer) {
     generate_init(writer);
     generate_set_typypeid_serializer(m, writer);
     writer.private();
-    generate_union(m, writer);
+    generate_union(m, protocol_endian, writer);
     writer.write_line("Types types_;");
     writer.write_line("bool set_;");
     generate_constant(m,  writer);
     writer.scope_out(true);
 }
 
-fn generate_ctor(m: &ViewMemory, writer: &mut Writer) {
+fn generate_ctor(m: &ViewMemory, protocol_endian: &EndianSettings, writer: &mut Writer) {
     writer.write_line(&format!("{}() : types_(), set_(false), type_id_(), type_id_setter_(nullptr) {{}}", 
-        m.serializer_typename()));
+        m.serializer_typename(protocol_endian)));
 }
 
-fn generate_union(m: &ViewMemory, writer: &mut Writer) {
+fn generate_union(m: &ViewMemory, protocol_endian: &EndianSettings, writer: &mut Writer) {
     writer.write_with_offset("union Types");
     writer.scope_in();
     writer.write_line("Types() : __init(false) {}");
     writer.write_line("~Types() {}");
     writer.write_line("bool __init;");
     for t in &m.types {
-        writer.write_line(&format!("{} {};", t.serializer_typename(), t.variable()));
+        writer.write_line(&format!("{} {};", t.serializer_typename(protocol_endian), t.variable()));
     }
     writer.scope_out(true);
 }
@@ -113,13 +113,13 @@ fn generate_init(writer: &mut Writer) {
     writer.scope_out(false);
 }
 
-fn generate_with_method(m: &ViewMemory, i: usize, writer: &mut Writer) {
+fn generate_with_method(m: &ViewMemory, i: usize, protocol_endian: &EndianSettings, writer: &mut Writer) {
     match &m.types[i].memory {
         MemoryType::Native(_) => generate_with_native(m, i, writer),
-        MemoryType::Struct(_) => generate_with_non_native(m, i, writer),
-        MemoryType::View(_) => generate_with_non_native(m, i, writer),
-        MemoryType::Enum(_) => generate_with_non_native(m, i, writer),
-        MemoryType::BitMask(_) => generate_with_non_native(m, i, writer),
+        MemoryType::Struct(_) => generate_with_non_native(m, i, protocol_endian, writer),
+        MemoryType::View(_) => generate_with_non_native(m, i, protocol_endian, writer),
+        MemoryType::Enum(_) => generate_with_non_native(m, i, protocol_endian, writer),
+        MemoryType::BitMask(_) => generate_with_non_native(m, i, protocol_endian, writer),
     }
 }
 
@@ -138,10 +138,10 @@ fn generate_with_native(m: &ViewMemory, i: usize, writer: &mut Writer) {
     writer.scope_out(false);
 }
 
-fn generate_with_non_native(m: &ViewMemory, i: usize, writer: &mut Writer) {
+fn generate_with_non_native(m: &ViewMemory, i: usize, protocol_endian: &EndianSettings, writer: &mut Writer) {
     let t = &m.types[i].memory;
     writer.write_with_offset(&format!("{}& with_{}()",
-        t.serializer_typename(),
+        t.serializer_typename(protocol_endian),
         t.variable()));
     writer.scope_in();
     writer.write_with_offset(&format!("if (set_ == false || type_id_ != {})", m.types[i].constant.get_value()));

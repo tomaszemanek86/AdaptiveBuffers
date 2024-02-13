@@ -417,6 +417,7 @@ impl Parser for TypVariant {
 
 impl Parser for OverrideEndian {
     fn parse<'a>(&mut self, text: &CodeView) -> Result<CodeView, Option<ParseError>> {
+        *self = OverrideEndian::Default;
         let mut big = Token::new("big", false);
         let mut little = Token::new("little", false);
         let mut possibilities: [&mut dyn Parser; 2] = [
@@ -1328,6 +1329,26 @@ mod test {
         let res = parser.parse(&CodeView::from("@ little"));
         assert_eq!(res.is_ok(), true);
         assert!(parser.is_little_endian());
+    }
+
+    #[test]
+    fn overide_endian_2() {
+        let mut parser = Struct::default();
+        let res = parser.parse(&CodeView::from("struct DifferentEndians {
+            member_8 : u8,
+            member_8b : u8 @ big,
+            member_8l : u8 @ little,
+            member_16 : u16 = 3,
+            member_16b : u16 @ big = 3,
+            member_16l : u16 @ little = 3
+        }"));
+        assert_eq!(res.is_ok(), true);
+        assert!(parser.members[0].typ.endian.is_default());
+        assert!(parser.members[1].typ.endian.is_big_endian());
+        assert!(parser.members[2].typ.endian.is_little_endian());
+        assert!(parser.members[3].typ.endian.is_default());
+        assert!(parser.members[4].typ.endian.is_big_endian());
+        assert!(parser.members[5].typ.endian.is_little_endian());
     }
 
     #[test]

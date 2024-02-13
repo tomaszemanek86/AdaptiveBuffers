@@ -21,6 +21,12 @@ use clap::Parser;
 use interpret::InterpretError;
 use std::{fmt::Display, fs, process::exit, rc::Rc, cell::RefCell};
 
+#[derive(Default, Clone)]
+pub struct EndianSettings {
+    pub machine_big: bool,
+    pub protocol_big: bool,
+}
+
 #[derive(Clone, Default, Debug)]
 pub struct CodeView {
     pub origin: Rc<String>,
@@ -257,7 +263,6 @@ pub enum ArraySize {
 pub struct Memory {
     memory: MemoryType,
     array_size: ArraySize,
-    //endian: OverrideEndian
 }
 
 #[derive(Debug, variation::Variation)]

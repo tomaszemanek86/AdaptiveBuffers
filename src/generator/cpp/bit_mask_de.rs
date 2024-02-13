@@ -1,10 +1,10 @@
 use super::*;
 
-pub fn generate_bit_mask_deserializer(m: &BitMask, writer: &mut Writer) {
-    writer.write(&format!("class {}", m.deserializer_typename()));
+pub fn generate_bit_mask_deserializer(m: &BitMask, protocol_endian: &EndianSettings, writer: &mut Writer) {
+    writer.write(&format!("class {}", m.deserializer_typename(protocol_endian)));
     writer.scope_in();
     writer.public();
-    generate_ctor(m, writer);
+    generate_ctor(m, protocol_endian, writer);
     for mask in &m.bits {
         generate_get(m, mask, writer);
     }
@@ -14,13 +14,13 @@ pub fn generate_bit_mask_deserializer(m: &BitMask, writer: &mut Writer) {
     generate_set_source(m, writer);
     generate_end(writer);
     writer.private();
-    writer.write_line(&format!("{} native_;", m.native.deserializer_typename()));
+    writer.write_line(&format!("{} native_;", m.native.deserializer_typename(protocol_endian)));
     writer.scope_out(true);
 }
 
-fn generate_ctor(m: &BitMask, writer: &mut Writer) {
-    writer.write_line(&format!("{}() : native_(nullptr) {{}}", m.deserializer_typename()));
-    writer.write_line(&format!("{}(uint8_t* source) : native_(source) {{}}", m.deserializer_typename()));
+fn generate_ctor(m: &BitMask, protocol_endian: &EndianSettings, writer: &mut Writer) {
+    writer.write_line(&format!("{}() : native_(nullptr) {{}}", m.deserializer_typename(protocol_endian)));
+    writer.write_line(&format!("{}(uint8_t* source) : native_(source) {{}}", m.deserializer_typename(protocol_endian)));
    
 }
 

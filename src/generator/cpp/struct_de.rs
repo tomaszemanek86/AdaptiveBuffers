@@ -1,13 +1,13 @@
 use super::*;
 
-pub fn generate_struct_deserializer(m: &StructMemory, writer: &mut Writer) {
-    writer.write(&format!("class {}", m.deserializer_typename()));
+pub fn generate_struct_deserializer(m: &StructMemory, protocol_endian: &EndianSettings, writer: &mut Writer) {
+    writer.write(&format!("class {}", m.deserializer_typename(protocol_endian)));
     writer.scope_in();
     writer.public();
-    generate_ctor(m, false, writer);
-    generate_ctor(m, true, writer);
+    generate_ctor(m, false, protocol_endian, writer);
+    generate_ctor(m, true, protocol_endian, writer);
     for i in 0..m.fields.len() {
-        generate_deserialze(m, i, writer);
+        generate_deserialze(m, i, protocol_endian, writer);
     }
     let groups = m.get_groups();
     if groups.is_empty() {
@@ -24,7 +24,7 @@ pub fn generate_struct_deserializer(m: &StructMemory, writer: &mut Writer) {
         generate_deserialize_methods(m, i, groups[i].0, groups[i].1, writer);
     }
     for i in 0..m.fields.len() {
-        generate_member_deserialzier(m, i, writer);
+        generate_member_deserialzier(m, i, protocol_endian, writer);
     }
     writer.write_line("uint8_t* source_;");
     writer.scope_out(true);
@@ -40,8 +40,8 @@ fn generate_init(m: &StructMemory, writer: &mut Writer) {
     writer.scope_out(false);
 }
 
-fn generate_ctor(m: &StructMemory, default: bool, writer: &mut Writer) {
-    writer.write_with_offset(&format!("{}({})", m.deserializer_typename(), if default { "uint8_t* source" } else { "" }));
+fn generate_ctor(m: &StructMemory, default: bool, protocol_endian: &EndianSettings, writer: &mut Writer) {
+    writer.write_with_offset(&format!("{}({})", m.deserializer_typename(protocol_endian), if default { "uint8_t* source" } else { "" }));
     let init = m.fields
         .iter()
         //.filter(|f| f.default_constructible_deserializer())
@@ -65,7 +65,7 @@ fn generate_ctor(m: &StructMemory, default: bool, writer: &mut Writer) {
     writer.scope_out(false);
 }
 
-fn generate_deserialze(m: &StructMemory, i: usize, writer: &mut Writer) {
+fn generate_deserialze(m: &StructMemory, i: usize, protocol_endian: &EndianSettings, writer: &mut Writer) {
     if m.fields[i].directly_deserializable() {
         writer.write_with_offset(&format!("{} {}()", 
             m.fields[i].native_typename(), 
@@ -76,7 +76,7 @@ fn generate_deserialze(m: &StructMemory, i: usize, writer: &mut Writer) {
         writer.scope_out(false);
     } else {
         writer.write_with_offset(&format!("{}& {}()", 
-            m.fields[i].deserializer_typename(), 
+            m.fields[i].deserializer_typename(protocol_endian), 
             m.fields[i].name));
             writer.scope_in();
             generate_if_not_prev_deserialized_throw(m, i, writer);
@@ -97,10 +97,10 @@ fn generate_if_not_prev_deserialized_throw(m: &StructMemory, i: usize, writer: &
     }
 }
 
-fn generate_member_deserialzier(m: &StructMemory, i: usize, writer: &mut Writer) {
+fn generate_member_deserialzier(m: &StructMemory, i: usize, protocol_endian: &EndianSettings, writer: &mut Writer) {
     let sm = m.fields[i].as_ref();
     writer.write_line(&format!("{} {}_;", 
-        sm.deserializer_typename(),
+        sm.deserializer_typename(protocol_endian),
         sm.name));
 }
 

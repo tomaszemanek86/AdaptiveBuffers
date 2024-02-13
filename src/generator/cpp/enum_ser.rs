@@ -1,22 +1,22 @@
 use super::*;
 
-pub fn generate_enum_serializer(m: &EnumMemory, writer: &mut Writer) {
-    writer.write(&format!("class {}", m.serializer_typename()));
+pub fn generate_enum_serializer(m: &EnumMemory, protocol_endian: &EndianSettings, writer: &mut Writer) {
+    writer.write(&format!("class {}", m.serializer_typename(protocol_endian)));
     writer.scope_in();
     writer.public();
-    generate_ctor(m, writer);
+    generate_ctor(m, protocol_endian, writer);
     generate_with_method(m, writer);
     generate_init(writer);
     generate_size(writer);
     generate_serialize(writer);
     generate_serialize_into_vector(writer);
     writer.private();
-    writer.write_line(&format!("{} native_;", m.underlaying_type.serializer_typename()));
+    writer.write_line(&format!("{} native_;", m.underlaying_type.serializer_typename(protocol_endian)));
     writer.scope_out(true);
 }
 
-fn generate_ctor(m: &EnumMemory, writer: &mut Writer) {
-    writer.write_line(&format!("{}() : native_() {{}}", m.serializer_typename()));
+fn generate_ctor(m: &EnumMemory, protocol_endian: &EndianSettings, writer: &mut Writer) {
+    writer.write_line(&format!("{}() : native_() {{}}", m.serializer_typename(protocol_endian)));
 }
 
 fn generate_with_method(m: &EnumMemory, writer: &mut Writer) {

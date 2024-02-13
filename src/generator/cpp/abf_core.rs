@@ -150,7 +150,7 @@ namespace abf {
                 std::memcpy(dest, source, Size);
                 bswap16_ptr(static_cast<uint16_t*>(dest));
             } else if constexpr (Size == 3) {
-                int32_t u32_temp;
+                uint32_t u32_temp;
                 std::memcpy(&u32_temp, source, 4);
                 bswap32_ptr(&u32_temp);
                 std::memcpy(reinterpret_cast<uint8_t*>(dest), reinterpret_cast<uint8_t*>(&u32_temp) + 1, 3);

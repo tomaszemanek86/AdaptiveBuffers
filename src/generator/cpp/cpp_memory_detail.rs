@@ -17,12 +17,12 @@ impl CppMemoryDetail for MemoryDeclaration {
         self.memory.directly_deserializable()
     }
 
-    fn serializer_typename(&self) -> String {
-        self.memory.serializer_typename()    
+    fn serializer_typename(&self, protocol_endian: &EndianSettings) -> String {
+        self.memory.serializer_typename(protocol_endian)    
     }
 
-    fn deserializer_typename(&self) -> String {
-        self.memory.deserializer_typename()
+    fn deserializer_typename(&self, protocol_endian: &EndianSettings) -> String {
+        self.memory.deserializer_typename(protocol_endian)
     }
 
     fn native_typename(&self) -> String {
@@ -67,19 +67,19 @@ impl CppMemoryDetail for Memory {
         }
     }
 
-    fn serializer_typename(&self) -> String {
+    fn serializer_typename(&self, protocol_endian: &EndianSettings) -> String {
         match self.array_size {
-            ArraySize::No => self.memory.serializer_typename(),
-            ArraySize::Dyn => format!("abf::DynArraySerializer<{}>", self.memory.serializer_typename()),
-            ArraySize::Exact(s) => format!("abf::ArraySerializer<{}, {}>", self.memory.serializer_typename(), s),
+            ArraySize::No => self.memory.serializer_typename(protocol_endian),
+            ArraySize::Dyn => format!("abf::DynArraySerializer<{}>", self.memory.serializer_typename(protocol_endian)),
+            ArraySize::Exact(s) => format!("abf::ArraySerializer<{}, {}>", self.memory.serializer_typename(protocol_endian), s),
         }
     }
 
-    fn deserializer_typename(&self) -> String {
+    fn deserializer_typename(&self, protocol_endian: &EndianSettings) -> String {
         match self.array_size {
-            ArraySize::No => self.memory.deserializer_typename(),
-            ArraySize::Dyn => format!("abf::DynArrayDeserializer<{}>", self.memory.deserializer_typename()),
-            ArraySize::Exact(s) => format!("abf::ArrayDeserializer<{}, {}>", self.memory.deserializer_typename(), s),
+            ArraySize::No => self.memory.deserializer_typename(protocol_endian),
+            ArraySize::Dyn => format!("abf::DynArrayDeserializer<{}>", self.memory.deserializer_typename(protocol_endian)),
+            ArraySize::Exact(s) => format!("abf::ArrayDeserializer<{}, {}>", self.memory.deserializer_typename(protocol_endian), s),
         }
     }
 
@@ -151,23 +151,23 @@ impl CppMemoryDetail for MemoryType {
         }
     }
 
-    fn serializer_typename(&self) -> String {
+    fn serializer_typename(&self, protocol_endian: &EndianSettings) -> String {
         match &self {
-            MemoryType::Native(m) => m.serializer_typename(),
-            MemoryType::Struct(m) => m.borrow().serializer_typename(),
-            MemoryType::View(m) => m.serializer_typename(),
-            MemoryType::Enum(m) => m.serializer_typename(),
-            MemoryType::BitMask(m) => m.serializer_typename(),
+            MemoryType::Native(m) => m.serializer_typename(protocol_endian),
+            MemoryType::Struct(m) => m.borrow().serializer_typename(protocol_endian),
+            MemoryType::View(m) => m.serializer_typename(protocol_endian),
+            MemoryType::Enum(m) => m.serializer_typename(protocol_endian),
+            MemoryType::BitMask(m) => m.serializer_typename(protocol_endian),
         }
     }
 
-    fn deserializer_typename(&self) -> String {
+    fn deserializer_typename(&self, protocol_endian: &EndianSettings) -> String {
         match &self {
-            MemoryType::Native(m) => m.deserializer_typename(),
-            MemoryType::Struct(m) => m.borrow().deserializer_typename(),
-            MemoryType::View(m) => m.deserializer_typename(),
-            MemoryType::Enum(m) => m.deserializer_typename(),
-            MemoryType::BitMask(m) => m.deserializer_typename(),
+            MemoryType::Native(m) => m.deserializer_typename(protocol_endian),
+            MemoryType::Struct(m) => m.borrow().deserializer_typename(protocol_endian),
+            MemoryType::View(m) => m.deserializer_typename(protocol_endian),
+            MemoryType::Enum(m) => m.deserializer_typename(protocol_endian),
+            MemoryType::BitMask(m) => m.deserializer_typename(protocol_endian),
         }
     }
 
@@ -198,6 +198,29 @@ impl CppMemoryDetail for MemoryType {
             MemoryType::View(m) => m.default_constructible_deserializer(),
             MemoryType::Enum(m) => m.default_constructible_deserializer(),
             MemoryType::BitMask(m) => m.default_constructible_deserializer(),
+        }
+    }
+}
+
+fn resolve_copy_struct(endian_settings: &EndianSettings, override_endian: &OverrideEndian) -> &'static str {
+
+    let target_protocol_endian_big = if endian_settings.protocol_big {
+        !override_endian.is_little_endian()
+    } else {
+        !override_endian.is_big_endian()
+    };
+
+    if target_protocol_endian_big {
+        if endian_settings.protocol_big {
+            return "abf::Copy"
+        } else {
+            return "abf::ByteSwapCopy"
+        }
+    } else {
+        if endian_settings.protocol_big {
+            return "abf::ByteSwapCopy"
+        } else {
+            return "abf::Copy"
         }
     }
 }
@@ -253,8 +276,8 @@ impl CppMemoryDetail for Native {
     fn directly_deserializable(&self) -> bool {
         true
     }
-    fn serializer_typename(&self) -> String {
-        let copy = "abf::Copy";
+    fn serializer_typename(&self, protocol_endian: &EndianSettings) -> String {
+        let copy = resolve_copy_struct(protocol_endian, &self.endian);
         match &self.typ {
             NativeType::Bool => format!("abf::NativeSerializer<bool, 1, {}>", copy),
             NativeType::U8 => format!("abf::NativeSerializer<uint8_t, 1, {}>", copy),
@@ -278,13 +301,13 @@ impl CppMemoryDetail for Native {
             NativeType::I64 => format!("abf::NativeSerializer<int64_t, 8, {}>", copy),
             NativeType::Unknown(_) => panic!("unknown type"),
             NativeType::ViewKeyReference(m) => format!("abf::ViewKeySerializer<{}, {}, {}>", m.native_key.native_typename(), m.native_key.bytes().unwrap(), copy),
-            NativeType::ArrayDimensionReference(r) => format!("abf::LazySerializer<{}>", r.origin.as_ref().serializer_typename()),
-            NativeType::StructMemberSize(m) => format!("abf::LazySerializer<{}>", m.native.serializer_typename()),
-            NativeType::StructMemberSizeArithmetics(m) => m.native.serializer_typename(),
+            NativeType::ArrayDimensionReference(r) => format!("abf::LazySerializer<{}>", r.origin.as_ref().serializer_typename(protocol_endian)),
+            NativeType::StructMemberSize(m) => format!("abf::LazySerializer<{}>", m.native.serializer_typename(protocol_endian)),
+            NativeType::StructMemberSizeArithmetics(m) => m.native.serializer_typename(protocol_endian),
         }
     }
-    fn deserializer_typename(&self) -> String {
-        let copy = "abf::Copy";
+    fn deserializer_typename(&self, protocol_endian: &EndianSettings) -> String {
+        let copy = resolve_copy_struct(protocol_endian, &self.endian);
         match &self.typ {
             NativeType::Bool => format!("abf::NativeDeserializer<bool, 1, {}>", copy),
             NativeType::U8 => format!("abf::NativeDeserializer<uint8_t, 1, {}>", copy),
@@ -307,10 +330,10 @@ impl CppMemoryDetail for Native {
             NativeType::I32 => format!("abf::NativeDeserializer<int32_t, 4, {}>", copy),
             NativeType::I64 => format!("abf::NativeDeserializer<int64_t, 8, {}>", copy),
             NativeType::Unknown(_) => panic!("unknown type"),
-            NativeType::ViewKeyReference(m) => m.native_key.deserializer_typename(),
-            NativeType::ArrayDimensionReference(r) => r.origin.deserializer_typename(),
-            NativeType::StructMemberSize(m) => m.native.deserializer_typename(),
-            NativeType::StructMemberSizeArithmetics(m) => m.native.deserializer_typename(),
+            NativeType::ViewKeyReference(m) => m.native_key.deserializer_typename(protocol_endian),
+            NativeType::ArrayDimensionReference(r) => r.origin.deserializer_typename(protocol_endian),
+            NativeType::StructMemberSize(m) => m.native.deserializer_typename(protocol_endian),
+            NativeType::StructMemberSizeArithmetics(m) => m.native.deserializer_typename(protocol_endian),
         }
     }
     fn native_typename(&self) -> String {
@@ -389,10 +412,10 @@ impl CppMemoryDetail for StructMemory {
     fn directly_deserializable(&self) -> bool {
         false
     }
-    fn serializer_typename(&self) -> String {
+    fn serializer_typename(&self, _protocol_endian: &EndianSettings) -> String {
         format!("{}Ser", self.name())
     }
-    fn deserializer_typename(&self) -> String {
+    fn deserializer_typename(&self, _protocol_endian: &EndianSettings) -> String {
         format!("{}De", self.name())
     }
     fn native_typename(&self) -> String {
@@ -427,10 +450,10 @@ impl CppMemoryDetail for ViewMemory {
     fn directly_deserializable(&self) -> bool {
         false
     }
-    fn serializer_typename(&self) -> String {
+    fn serializer_typename(&self, _protocol_endian: &EndianSettings) -> String {
         format!("{}Ser", self.name())
     }
-    fn deserializer_typename(&self) -> String {
+    fn deserializer_typename(&self, _protocol_endian: &EndianSettings) -> String {
         format!("{}De", self.name())
     }
     fn native_typename(&self) -> String {
@@ -461,10 +484,10 @@ impl CppMemoryDetail for EnumMemory {
     fn directly_deserializable(&self) -> bool {
         true
     }
-    fn serializer_typename(&self) -> String {
+    fn serializer_typename(&self, _protocol_endian: &EndianSettings) -> String {
         format!("{}Ser", self.name)
     }
-    fn deserializer_typename(&self) -> String {
+    fn deserializer_typename(&self, _protocol_endian: &EndianSettings) -> String {
         format!("{}De", self.name)
     }
     fn native_typename(&self) -> String {
@@ -491,25 +514,25 @@ impl CppMemoryDetail for StructMemberMemory {
     fn directly_deserializable(&self) -> bool {
         self.memory.borrow().directly_deserializable()
     }
-    fn serializer_typename(&self) -> String {
+    fn serializer_typename(&self, protocol_endian: &EndianSettings) -> String {
         let m = self.memory.borrow();
         if let Some(size_member) = self.get_array_size_reference() {
             let size_member_nt = size_member.as_ref().memory.borrow().memory.as_native().unwrap().clone();
             if size_member_nt.bytes().unwrap() != 32 {
-                return format!("abf::ArraySizedSerializer<{}, {}>", m.serializer_typename(), size_member.serializer_typename());
+                return format!("abf::ArraySizedSerializer<{}, {}>", m.serializer_typename(protocol_endian), size_member.serializer_typename(protocol_endian));
             }
         }
-        m.serializer_typename()
+        m.serializer_typename(protocol_endian)
     }
-    fn deserializer_typename(&self) -> String {
+    fn deserializer_typename(&self, protocol_endian: &EndianSettings) -> String {
         let m = self.memory.borrow();
         if let Some(size_member) = self.get_array_size_reference() {
             let size_member_nt = size_member.as_ref().memory.borrow().memory.as_native().unwrap().clone();
             if size_member_nt.bytes().unwrap() != 32 {
-                return format!("abf::ArraySizedDeserializer<{}, {}>", m.deserializer_typename(), size_member.deserializer_typename());
+                return format!("abf::ArraySizedDeserializer<{}, {}>", m.deserializer_typename(protocol_endian), size_member.deserializer_typename(protocol_endian));
             }
         }
-        self.memory.borrow().deserializer_typename()
+        self.memory.borrow().deserializer_typename(protocol_endian)
     }
     fn native_typename(&self) -> String {
         self.memory.borrow().native_typename()
@@ -535,11 +558,11 @@ impl CppMemoryDetail for ViewPosibilityMemory {
     fn directly_deserializable(&self) -> bool {
         self.memory.directly_deserializable()
     }
-    fn serializer_typename(&self) -> String {
-        self.memory.serializer_typename()
+    fn serializer_typename(&self, protocol_endian: &EndianSettings) -> String {
+        self.memory.serializer_typename(protocol_endian)
     }
-    fn deserializer_typename(&self) -> String {
-        self.memory.deserializer_typename()
+    fn deserializer_typename(&self, protocol_endian: &EndianSettings) -> String {
+        self.memory.deserializer_typename(protocol_endian)
     }
     fn native_typename(&self) -> String {
         self.memory.native_typename()
@@ -569,11 +592,11 @@ impl CppMemoryDetail for BitMask {
         false
     }
 
-    fn serializer_typename(&self) -> String {
+    fn serializer_typename(&self, _protocol_endian: &EndianSettings) -> String {
         format!("{}Ser", self.name)
     }
 
-    fn deserializer_typename(&self) -> String {
+    fn deserializer_typename(&self, _protocol_endian: &EndianSettings) -> String {
         format!("{}De", self.name)
     }
 

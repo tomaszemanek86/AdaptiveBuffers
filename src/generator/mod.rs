@@ -15,7 +15,10 @@ pub fn generate(mi: MemoryImage, args: &Args) -> Result<(), GeneratorError> {
         _ => panic!("endian can be big or little")
     };
     match args.language {
-        Language::Cpp => cpp::generate(&mi.memory_decl, mi.big_endian != big_endian_on_machine, args),
+        Language::Cpp => cpp::generate(&mi.memory_decl, &EndianSettings {
+            protocol_big: mi.big_endian,
+            machine_big: big_endian_on_machine
+        }, args),
         _ => {
             return Err(GeneratorError::InternalError(format!(
                 "Language {} not supported",
@@ -25,4 +28,3 @@ pub fn generate(mi: MemoryImage, args: &Args) -> Result<(), GeneratorError> {
     }
     Ok(())
 }
-
