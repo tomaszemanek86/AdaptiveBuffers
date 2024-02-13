@@ -10,7 +10,7 @@ mod view;
 use super::*;
 use crate::parser::{self};
 use std::cell::RefCell;
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::rc::Rc;
 use std::vec::Vec;
 
@@ -118,8 +118,7 @@ pub struct Enum {
 
 #[derive(Default, Clone)]
 pub struct Types {
-    types: HashMap<String, TypeVariant>,
-    order: Vec<String>,
+    types: BTreeMap<String, TypeVariant>,
 }
 
 impl Types {
