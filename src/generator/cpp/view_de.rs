@@ -12,6 +12,7 @@ pub fn generate_view_deserializer(m: &ViewMemory, protocol_endian: &EndianSettin
     generate_set_source(writer);
     generate_source_set(writer);
     generate_end(m, writer);
+    generate_get_size(m, writer);
     generate_init(writer);
     writer.private();
     generate_check_deserialize(writer);
@@ -189,5 +190,26 @@ fn generate_source_set(
     writer.write_with_offset(&format!("bool _source_set()"));
     writer.scope_in();
     writer.write_line("return source_ != nullptr;");
+    writer.scope_out(false);
+}
+
+fn generate_get_size(m: &ViewMemory, writer: &mut Writer) {
+    writer.write_with_offset("uint32_t get_size()");
+    writer.scope_in();
+
+    writer.write_with_offset("if (deserialized_)");
+    writer.scope_in();
+    writer.write_with_offset("switch (type_id_)");
+    writer.scope_in();
+    for t in &m.types {
+        writer.write_line(&format!("case {}: return types_.{}.get_size();",
+            t.constant.get_value(),
+            t.variable()
+        ));
+    }
+    writer.scope_out(false);
+    writer.scope_out(false);
+    
+    writer.write_line("throw std::runtime_error(\"Not deserialized\");");
     writer.scope_out(false);
 }

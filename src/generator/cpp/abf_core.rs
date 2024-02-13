@@ -542,6 +542,10 @@ namespace abf {
             return source_ + Size;
         }
 
+        uint32_t get_size() {
+            return Size;
+        }
+
         void init() {
             source_ = nullptr;
         }
@@ -579,6 +583,10 @@ namespace abf {
 
         uint8_t* _end() {
             return source_ + Size;
+        }
+
+        uint32_t get_size() {
+            return Size;
         }
 
         void init() {
@@ -638,6 +646,14 @@ namespace abf {
 
         uint8_t* _end() {
             return deserializers_[Size - 1]._end();
+        }
+
+        uint32_t get_size() {
+            uint32_t sum = 0;
+            for (auto i = 0; i < Size; i++) {
+                sum += deserializers_[i].get_size();
+            }
+            return sum;
         }
 
     private:
@@ -709,6 +725,14 @@ namespace abf {
             }
         }
 
+        uint32_t get_size() {
+            uint32_t sum = 0;
+            for (auto i = 0; i < deserializers_.size(); i++) {
+                sum += deserializers_[i].get_size();
+            }
+            return sum;
+        }
+
     private:
         std::vector<TDeserialzer> deserializers_;
         uint8_t* source_;
@@ -756,6 +780,10 @@ namespace abf {
 
         uint8_t* _end() {
             return array_._end();
+        }
+
+        uint32_t get_size() {
+            return array_.get_size();
         }
 
         void set_size_deserializer(TSizeDeserialzer *size) {

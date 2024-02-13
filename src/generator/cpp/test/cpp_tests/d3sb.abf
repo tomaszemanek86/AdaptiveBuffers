@@ -637,3 +637,18 @@ view PwrSrc_Request {
     PwrSrc_ProgramMCU_Request,
     PwrSrc_RevertToPreviousFW_Request
 }
+
+view PwrSrc_Response {
+    PwrSrc_GetType_Response,
+    PwrSrc_GetStatus_Response,
+    PwrSrc_SN_Response,
+    PwrSrc_GetAnalog_Response,
+    PwrSrc_GetFWVersion_Response,
+    PwrSrc_GetClock_Response,
+    PwrSrc_GetChargerDiagnostics_Response,
+    PwrSrc_GetStatistics_Response,
+    PwrSrc_GetStatisticsLength_Response,
+    PwrSrc_GetHistory_Response,
+    PwrSrc_GetHistoryLength_Response,
+    PwrSrc_ConfirmFWBlockReception_Response
+}

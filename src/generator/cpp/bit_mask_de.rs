@@ -13,6 +13,7 @@ pub fn generate_bit_mask_deserializer(m: &BitMask, protocol_endian: &EndianSetti
     generate_source_set(m, writer);
     generate_set_source(m, writer);
     generate_end(writer);
+    generate_get_size(writer);
     writer.private();
     writer.write_line(&format!("{} native_;", m.native.deserializer_typename(protocol_endian)));
     writer.scope_out(true);
@@ -56,6 +57,13 @@ fn generate_end(writer: &mut Writer) {
     writer.write_with_offset("uint8_t* _end()");
     writer.scope_in();
     writer.write_line("return native_._end();");
+    writer.scope_out(false);
+}
+
+fn generate_get_size(writer: &mut Writer) {
+    writer.write_with_offset("uint32_t get_size()");
+    writer.scope_in();
+    writer.write_line("return native_.get_size();");
     writer.scope_out(false);
 }
 

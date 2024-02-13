@@ -18,6 +18,7 @@ pub fn generate_struct_deserializer(m: &StructMemory, protocol_endian: &EndianSe
         generate_deserialized(m, writer);
         generate_source_set(m, writer);
         generate_end(m, writer);
+        generate_get_size(m, writer);
     }
     writer.private();
     for i in 1..groups.len() {
@@ -132,6 +133,11 @@ fn generate_empty_struct_methods(
     writer.scope_in();
     writer.write_line("source_ = nullptr;");
     writer.scope_out(false);
+
+    writer.write_with_offset("uint32_t get_size() ");
+    writer.scope_in();
+    writer.write_line("return 0;");
+    writer.scope_out(false);
 }
 
 fn generate_deserialize_methods(
@@ -194,5 +200,19 @@ fn generate_end(
     writer.write_with_offset(&format!("uint8_t* _end()"));
     writer.scope_in();
     writer.write_line(&format!("return {}_._end();", m.fields.first().unwrap().name));
+    writer.scope_out(false);
+}
+
+fn generate_get_size(
+    m: &StructMemory, 
+    writer: &mut Writer
+) {
+    writer.write_with_offset(&format!("uint32_t get_size()"));
+    writer.scope_in();
+    writer.write_line("uint32_t sum = 0;");
+    for f in &m.fields {
+        writer.write_line(&format!("sum += {}_.get_size();", f.name));
+    }
+    writer.write_line("return sum;");
     writer.scope_out(false);
 }
