@@ -54,12 +54,7 @@ pub fn generate(m: &Vec<MemoryDeclaration>, byte_swap: bool, args: &Args) {
 
     let abf_file = format!("{}/abf.h", args.output_dir);
     let mut f = std::fs::File::create(&abf_file).expect("could not create abf.h");
-    let abf_source_code = abf_core::SOURCE.replace("<<BSWAP_SOURCE>>", if byte_swap {
-        abf_core::BSWAP_SOURCE
-    } else {
-        abf_core::NO_BSWAP_SOURCE
-    });
-    let _ = f.write_all(abf_source_code.as_bytes()).expect("write abf.h failed");
+    let _ = f.write_all(abf_core::SOURCE.as_bytes()).expect("write abf.h failed");
     
     let mut writer = Writer::new(&format!("{}/{}.h", args.output_dir, output_namespace));
     writer.write_line("#pragma once");

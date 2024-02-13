@@ -12,7 +12,7 @@ pub fn generate_enum_deserializer(m: &EnumMemory, writer: &mut Writer) {
     generate_set_source(m, writer);
     generate_end(writer);
     writer.private();
-    writer.write_line(&format!("abf::NativeDeserializer<{}, {}> native_;", m.underlaying_type.native_typename(), m.underlaying_type.bytes().unwrap()));
+    writer.write_line(&format!("{} native_;", m.underlaying_type.deserializer_typename()));
     writer.scope_out(true);
 }
 

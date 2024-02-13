@@ -256,7 +256,8 @@ pub enum ArraySize {
 #[derive(Debug)]
 pub struct Memory {
     memory: MemoryType,
-    array_size: ArraySize
+    array_size: ArraySize,
+    //endian: OverrideEndian
 }
 
 #[derive(Debug, variation::Variation)]

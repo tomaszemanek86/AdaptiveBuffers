@@ -9,7 +9,6 @@ pub static SOURCE: &str = "
 #include <limits>
 
 namespace abf {
-<<BSWAP_SOURCE>>
 
     inline uint8_t get_u8_bit(uint8_t index) {
         uint8_t b = 0b10000000;
@@ -96,11 +95,82 @@ namespace abf {
         return (value & get_u64_bit(index)) != 0;
     }
 
+    inline uint8_t bswap8(uint8_t value) {
+        value = ((value & 0x55) << 1) | ((value & 0xAA) >> 1);
+        value = ((value & 0x33) << 2) | ((value & 0xCC) >> 2);
+        value = ((value & 0x0F) << 4) | ((value & 0xF0) >> 4);
+        return value;
+    }
+    
+    inline uint16_t bswap16(uint16_t value) {
+        return (static_cast<uint16_t>(bswap8(static_cast<uint8_t>(value))) << 8) |
+               (bswap8(static_cast<uint8_t>(value >> 8)));
+    }
+    
+    inline uint32_t bswap32(uint32_t value) {
+        return (static_cast<uint32_t>(bswap16(static_cast<uint16_t>(value))) << 16) |
+               (bswap16(static_cast<uint16_t>(value >> 16)));
+    }
+    
+    inline uint64_t bswap64(uint64_t value) {
+        return (static_cast<uint64_t>(bswap32(static_cast<uint32_t>(value))) << 32) |
+               (bswap32(static_cast<uint32_t>(value >> 32)));
+    }
+    
+    inline void bswap8_ptr(uint8_t* ptr) {
+        *ptr = bswap8(*ptr);
+    }
+    
+    inline void bswap16_ptr(uint16_t* ptr) {
+        *ptr = bswap16(*ptr);
+    }
+    
+    inline void bswap32_ptr(uint32_t* ptr) {
+        *ptr = bswap32(*ptr);
+    }
+    
+    inline void bswap64_ptr(uint64_t* ptr) {
+        *ptr = bswap64(*ptr);
+    }
+
+    struct Copy {
+        template <uint32_t Size>
+        inline static void copy(void* dest, void* source) {
+            std::memcpy(dest, source, Size);
+        }
+    };
+
+    struct ByteSwapCopy {
+        template <uint32_t Size>
+        inline static void copy(void* dest, void* source) {
+            if constexpr (Size == 1) {
+                std::memcpy(dest, source, Size);
+                bswap8_ptr(static_cast<uint8_t*>(dest));
+            } else if constexpr (Size == 2) {
+                std::memcpy(dest, source, Size);
+                bswap16_ptr(static_cast<uint16_t*>(dest));
+            } else if constexpr (Size == 3) {
+                int32_t u32_temp;
+                std::memcpy(&u32_temp, source, 4);
+                bswap32_ptr(&u32_temp);
+                std::memcpy(reinterpret_cast<uint8_t*>(dest), reinterpret_cast<uint8_t*>(&u32_temp) + 1, 3);
+            } else if constexpr (Size == 4) {
+                std::memcpy(dest, source, Size);
+                bswap32_ptr(static_cast<uint32_t*>(dest));
+            } else if constexpr (Size == 8) {
+                std::memcpy(dest, source, Size);
+                bswap64_ptr(static_cast<uint64_t*>(dest));
+            } else {
+                static_assert(\"Unsupported size\");
+            }
+        }
+    };
+
     ////////////////////////////////////////////////////////////////////////////////
     // SERIALIZER
     ////////////////////////////////////////////////////////////////////////////////
 
-    template <typename TData, uint32_t Size>
+    template <typename TData, uint32_t Size, typename Copy>
     class NativeSerializer {
     public:
         using Data = TData;
@@ -111,7 +181,7 @@ namespace abf {
             if (!set_) {
                 throw std::runtime_error(\"Not set\");
             }
-            copy(dest, &data_, Size);
+            Copy::template copy<Size>(dest, &data_);
             return Size;
         }
 
@@ -249,7 +319,7 @@ namespace abf {
         virtual void set_u64(uint64_t data) = 0;
     };
 
-    template <typename TNativeData, uint32_t NativeSize>
+    template <typename TNativeData, uint32_t NativeSize, typename Copy>
     class ViewKeySerializer : public IViewKeySetter {
         friend class ViewKeySetter;
     public:
@@ -284,7 +354,7 @@ namespace abf {
         }
 
     private:
-        LazySerializer<NativeSerializer<TNativeData, NativeSize>> native_;
+        LazySerializer<NativeSerializer<TNativeData, NativeSize, Copy>> native_;
     };
 
     template <typename TSerialzer, uint32_t Size>
@@ -441,7 +511,7 @@ namespace abf {
     // DESERIALIZER
     ////////////////////////////////////////////////////////////////////////////////
 
-    template <typename TData, uint32_t Size>
+    template <typename TData, uint32_t Size, typename Copy>
     class NativeDeserializer {
     public:
         NativeDeserializer() : source_(nullptr) {}
@@ -452,7 +522,7 @@ namespace abf {
                 throw std::runtime_error(\"Source not set\");
             }
             TData value = 0;
-            copy(&value, source_, Size);
+            Copy::template copy<Size>(&value, source_);
             return value;
         }
 
@@ -699,89 +769,3 @@ namespace abf {
 
 }
 ";
-
-pub static BSWAP_SOURCE: &str = "
-inline uint8_t bswap8(uint8_t value) {
-    value = ((value & 0x55) << 1) | ((value & 0xAA) >> 1);
-    value = ((value & 0x33) << 2) | ((value & 0xCC) >> 2);
-    value = ((value & 0x0F) << 4) | ((value & 0xF0) >> 4);
-    return value;
-}
-
-inline uint16_t bswap16(uint16_t value) {
-    return (static_cast<uint16_t>(bswap8(static_cast<uint8_t>(value))) << 8) |
-           (bswap8(static_cast<uint8_t>(value >> 8)));
-}
-
-inline uint32_t bswap32(uint32_t value) {
-    return (static_cast<uint32_t>(bswap16(static_cast<uint16_t>(value))) << 16) |
-           (bswap16(static_cast<uint16_t>(value >> 16)));
-}
-
-inline uint64_t bswap64(uint64_t value) {
-    return (static_cast<uint64_t>(bswap32(static_cast<uint32_t>(value))) << 32) |
-           (bswap32(static_cast<uint32_t>(value >> 32)));
-}
-
-inline void bswap8_ptr(uint8_t* ptr) {
-    *ptr = bswap8(*ptr);
-}
-
-inline void bswap16_ptr(uint16_t* ptr) {
-    *ptr = bswap16(*ptr);
-}
-
-inline void bswap32_ptr(uint32_t* ptr) {
-    *ptr = bswap32(*ptr);
-}
-
-inline void bswap64_ptr(uint64_t* ptr) {
-    *ptr = bswap64(*ptr);
-}
-
-inline void copy(void* dest, void* source, size_t size) {
-    switch (size) {
-        case 1:
-            std::memcpy(dest, source, size);
-            bswap8_ptr(static_cast<uint8_t*>(dest));
-            break;
-        case 2:
-            std::memcpy(dest, source, size);
-            bswap16_ptr(static_cast<uint16_t*>(dest));
-            break;
-        case 3:
-            uint32_t u32_temp;
-            std::memcpy(&u32_temp, source, 4);
-            bswap32_ptr(&u32_temp);
-            std::memcpy(reinterpret_cast<uint8_t*>(dest), reinterpret_cast<uint8_t*>(&u32_temp) + 1, 3);
-            break;
-        case 4:
-            std::memcpy(dest, source, size);
-            bswap32_ptr(static_cast<uint32_t*>(dest));
-            break;
-        case 8:
-            std::memcpy(dest, source, size);
-            bswap64_ptr(static_cast<uint64_t*>(dest));
-            break;
-        default:
-            throw std::runtime_error(\"Unsupported size\");
-    }
-}
-";
-
-pub static NO_BSWAP_SOURCE: &str = "
-inline void copy(void* dest, void* source, size_t size) {
-    switch (size) {
-        case 1:
-        case 2:
-        case 4:
-        case 8:
-            std::memcpy(dest, source, size);
-            break;
-        case 3:
-            std::memcpy(dest, static_cast<uint8_t*>(source), size);
-            break;
-    }
-}
-";
-

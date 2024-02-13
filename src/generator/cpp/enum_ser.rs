@@ -11,7 +11,7 @@ pub fn generate_enum_serializer(m: &EnumMemory, writer: &mut Writer) {
     generate_serialize(writer);
     generate_serialize_into_vector(writer);
     writer.private();
-    writer.write_line(&format!("abf::NativeSerializer<{}, {}> native_;", m.underlaying_type.native_typename(), m.underlaying_type.bytes().unwrap()));
+    writer.write_line(&format!("{} native_;", m.underlaying_type.serializer_typename()));
     writer.scope_out(true);
 }
 
