@@ -9,7 +9,7 @@ pub fn generate_view_deserializer(m: &ViewMemory, protocol_endian: &EndianSettin
         generate_get_method(m, i, protocol_endian, writer);
     }
     generate_deserialized(m, writer);
-    generate_set_source(writer);
+    generate_set_source(m, writer);
     generate_source_set(writer);
     generate_end(m, writer);
     generate_get_size(m, writer);
@@ -24,10 +24,24 @@ pub fn generate_view_deserializer(m: &ViewMemory, protocol_endian: &EndianSettin
     writer.scope_out(true);
 }
 
-fn generate_set_source(writer: &mut Writer) {
+fn generate_set_source(m: &ViewMemory, writer: &mut Writer) {
     writer.write_with_offset("void _set_source(uint8_t *source)");
     writer.scope_in();
     writer.write_line("source_ = source;");
+
+    writer.write_with_offset("if (deserialized_)");
+    writer.scope_in();
+    writer.write_with_offset("switch (type_id_)");
+    writer.scope_in();
+    for t in &m.types {
+        writer.write_line(&format!("case {}: types_.{}._set_source(source_);",
+            t.constant.get_value(),
+            t.variable()
+        ));
+    }
+    writer.scope_out(false);
+    writer.scope_out(false);
+
     writer.scope_out(false);
 }
 
