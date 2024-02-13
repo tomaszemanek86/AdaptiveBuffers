@@ -20,4 +20,12 @@ UTEST(override_endian, serde_second_0) {
     ASSERT_EQ(*reinterpret_cast<uint16_t*>(&buffer[3]), 3);
     ASSERT_EQ(*reinterpret_cast<uint16_t*>(&buffer[5]), 3);
     ASSERT_EQ(*reinterpret_cast<uint16_t*>(&buffer[7]), 49152);
+
+    DifferentEndiansDe de(buffer);
+    ASSERT_EQ(de.member_16(), 3);
+    ASSERT_EQ(de.member_16b(), 3);
+    ASSERT_EQ(de.member_16l(), 3);
+    ASSERT_EQ(de.member_8(), 1);
+    ASSERT_EQ(de.member_8b(), 1);
+    ASSERT_EQ(de.member_8l(), 1);
 }
