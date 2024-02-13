@@ -727,7 +727,7 @@ namespace abf {
 
         uint32_t get_size() {
             uint32_t sum = 0;
-            for (auto i = 0; i < deserializers_.size(); i++) {
+            for (auto i = 0u; i < deserializers_.size(); i++) {
                 sum += deserializers_[i].get_size();
             }
             return sum;
