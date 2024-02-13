@@ -202,9 +202,9 @@ impl CppMemoryDetail for MemoryType {
     }
 }
 
-impl CppMemoryDetail for NativeType {
+impl CppMemoryDetail for Native {
     fn name(&self) -> String {
-        match self {
+        match &self.typ {
             NativeType::Bool => "b".into(),
             NativeType::U8 => "u8".into(),
             NativeType::U16 => "u16".into(),
@@ -233,7 +233,7 @@ impl CppMemoryDetail for NativeType {
         }
     }
     fn user_value_serializable(&self) -> bool {
-        match self {
+        match &self.typ {
             NativeType::Unknown(_) => panic!("unknown type"),
             NativeType::ViewKeyReference(_) => false,
             NativeType::ArrayDimensionReference(_) => false,
@@ -254,7 +254,7 @@ impl CppMemoryDetail for NativeType {
         true
     }
     fn serializer_typename(&self) -> String {
-        match self {
+        match &self.typ {
             NativeType::Bool => "abf::NativeSerializer<bool, 1>".into(),
             NativeType::U8 => "abf::NativeSerializer<uint8_t, 1>".into(),
             NativeType::U16 => "abf::NativeSerializer<uint16_t, 2>".into(),
@@ -283,7 +283,7 @@ impl CppMemoryDetail for NativeType {
         }
     }
     fn deserializer_typename(&self) -> String {
-        match self {
+        match &self.typ {
             NativeType::Bool => "abf::NativeDeserializer<bool, 1>".into(),
             NativeType::U8 => "abf::NativeDeserializer<uint8_t, 1>".into(),
             NativeType::U16 => "abf::NativeDeserializer<uint16_t, 2>".into(),
@@ -312,7 +312,7 @@ impl CppMemoryDetail for NativeType {
         }
     }
     fn native_typename(&self) -> String {
-        match self {
+        match &self.typ {
             NativeType::Bool => "bool".into(),
             NativeType::U8 => "uint8_t".into(),
             NativeType::U16 => "uint16_t".into(),
@@ -341,7 +341,7 @@ impl CppMemoryDetail for NativeType {
         }
     }
     fn bytes(&self) -> Option<u32> {
-        match self {
+        match &self.typ {
             NativeType::Bool => Some(1),
             NativeType::U8 => Some(1),
             NativeType::U16 => Some(2),
@@ -371,44 +371,6 @@ impl CppMemoryDetail for NativeType {
     }
     fn default_constructible_deserializer(&self) -> bool {
         true
-    }
-}
-
-impl CppMemoryDetail for Native {
-    fn name(&self) -> String {
-        self.typ.name()
-    }
-
-    fn user_value_serializable(&self) -> bool {
-        self.typ.user_value_serializable()
-    }
-
-    fn directly_serializable(&self) -> bool {
-        self.typ.directly_serializable()
-    }
-
-    fn directly_deserializable(&self) -> bool {
-        self.typ.directly_deserializable()
-    }
-
-    fn serializer_typename(&self) -> String {
-        self.typ.serializer_typename()
-    }
-
-    fn deserializer_typename(&self) -> String {
-        self.typ.deserializer_typename()
-    }
-
-    fn native_typename(&self) -> String {
-        self.typ.native_typename()
-    }
-
-    fn bytes(&self) -> Option<u32> {
-        self.typ.bytes()
-    }
-
-    fn default_constructible_deserializer(&self) -> bool {
-        self.typ.default_constructible_deserializer()
     }
 }
 

@@ -1,7 +1,7 @@
 use super::*;
 
 impl ViewMemory {
-    pub fn get_index_typename(&self) -> NativeType {
+    pub fn get_index_typename(&self) -> Native {
         let mut max_value = 0;
         for t in &self.types {
             match &t.constant {
@@ -10,6 +10,6 @@ impl ViewMemory {
                 ViewPosibilityConstantMemory::EnumMemberRef(emr) => max_value = max_value.max(emr.get_value()),
             }
         }
-        NativeType::from_max_number(max_value, false)
+        Native { typ: NativeType::from_max_number(max_value, false), endian: OverrideEndian::Default }
     }
 }

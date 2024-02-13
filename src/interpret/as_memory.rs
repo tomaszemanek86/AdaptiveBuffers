@@ -147,7 +147,7 @@ impl AsMemory for Struct {
         for f in &structure.borrow().fields {
             if let Some(nm) = f.memory.borrow().memory.as_native() {
                 if let NativeType::ViewKeyReference(vrk) = &nm.typ {
-                    if vrk.view.memory.borrow().memory.as_view().unwrap().get_index_typename().size() > 4 {
+                    if vrk.view.memory.borrow().memory.as_view().unwrap().get_index_typename().typ.size() > 4 {
                         return Err(InterpretError::ViewReferenceKeyIsTooBig(
                             self.members[f.index].constant
                                 .as_ref()

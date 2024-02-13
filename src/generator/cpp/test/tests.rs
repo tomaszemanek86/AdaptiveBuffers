@@ -171,6 +171,16 @@ fn mask_u24() {
 }
 
 #[test]
+fn override_endian() {
+    generate_test(
+        "override_endian.abf", 
+        "override_endian.cpp", 
+        true, 
+        true
+    );
+}
+
+#[test]
 fn d3sb() {
     generate_test(
         "d3sb.abf", 

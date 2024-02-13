@@ -472,7 +472,11 @@ impl Parser for Typ {
             }
             return res
         }
-        self.typ.parse(text)
+        Sequence::new(&mut [
+            &mut self.typ,
+            &mut WhiteChars::default(),
+            &mut TryParse::new(&mut self.endian),
+        ]).parse(text)
     }
 }
 
@@ -1324,5 +1328,13 @@ mod test {
         let res = parser.parse(&CodeView::from("@ little"));
         assert_eq!(res.is_ok(), true);
         assert!(parser.is_little_endian());
+    }
+
+    #[test]
+    fn struct_member_with_endian() {
+        let mut parser = StructMember::default();
+        let res = parser.parse(&CodeView::from("member_8b : u8 @ big"));
+        assert_eq!(res.is_ok(), true);
+        assert!(parser.typ.endian.is_big_endian());
     }
 }
