@@ -63,7 +63,8 @@ pub enum TypeVariant {
 #[derive(Clone)]
 pub struct Type {
     typ: TypeVariant,
-    array_size: ArraySize
+    array_size: ArraySize,
+    endian: OverrideEndian
 }
 
 #[derive(Clone)]

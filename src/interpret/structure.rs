@@ -131,7 +131,8 @@ impl Struct {
                         None => return Err(InterpretError::UnknownType(u.clone())),
                         Some(t) => member.typ = Type {
                             typ: t,
-                            array_size: member.typ.array_size.clone()
+                            array_size: member.typ.array_size.clone(),
+                            endian: member.typ.endian.clone()
                         },
                     },
                     Err(e) => return Err(e),

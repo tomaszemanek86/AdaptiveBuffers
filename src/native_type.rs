@@ -83,11 +83,11 @@ impl NativeType {
 
     pub fn no_swap(&self) -> Native {
         match self {
-            Self::U8 => Native { typ: Self::NoSwapU8, endian: None },
-            Self::U16 => Native { typ: Self::NoSwapU16, endian: None },
-            Self::U24 => Native { typ: Self::NoSwapU24, endian: None },
-            Self::U32 => Native { typ: Self::NoSwapU32, endian: None },
-            Self::U64 => Native { typ: Self::NoSwapU64, endian: None },
+            Self::U8 => Native { typ: Self::NoSwapU8, endian: OverrideEndian::Default },
+            Self::U16 => Native { typ: Self::NoSwapU16, endian: OverrideEndian::Default },
+            Self::U24 => Native { typ: Self::NoSwapU24, endian: OverrideEndian::Default },
+            Self::U32 => Native { typ: Self::NoSwapU32, endian: OverrideEndian::Default },
+            Self::U64 => Native { typ: Self::NoSwapU64, endian: OverrideEndian::Default },
             _ => panic!("cannot make no-swap native type")
         }
     }

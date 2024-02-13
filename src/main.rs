@@ -176,11 +176,17 @@ pub struct BitMask {
     bits: Vec<Bits>
 }
 
+#[derive(Debug, Clone, variation::Variation)]
+pub enum OverrideEndian {
+    BigEndian,
+    LittleEndian,
+    Default,
+}
 
 #[derive(Debug, Clone, Default)]
 pub struct Native {
     typ: NativeType,
-    endian: Option<bool>
+    endian: OverrideEndian
 }
 
 #[derive(Debug, Clone, variation::Variation)]

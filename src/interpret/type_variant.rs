@@ -1,15 +1,17 @@
 use super::*;
 
 impl TypeVariant {
-    pub fn from_parser_typ(typ: &parser::TypVariant, array_size: ArraySize) -> Type {
-        match typ {
+    pub fn from_parser_typ(typ: &parser::Typ) -> Type {
+        match &typ.typ {
             parser::TypVariant::Int(int) => Type {
                 typ: TypeVariant::Int(int.clone()),
-                array_size: array_size
+                array_size: typ.array_size.clone(),
+                endian: typ.endian.clone()
             },
             parser::TypVariant::Unknown(unknown) => Type {
                 typ: TypeVariant::Unknown(unknown.clone()),
-                array_size: array_size
+                array_size: typ.array_size.clone(),
+                endian: typ.endian.clone()
             },
             parser::TypVariant::UnknownType => panic!("unexpected unknown type"),
         }
@@ -37,7 +39,7 @@ impl TypeVariant {
                         return StructMember {
                             name: member.name.clone(),
                             index: i,
-                            typ: Self::from_parser_typ(&member.typ.typ, member.typ.array_size.clone()),
+                            typ: Self::from_parser_typ(&member.typ),
                             constant: match &member.constant {
                                     parser::StructMemberConstant::No => None,
                                     parser::StructMemberConstant::Usize(value) => Some(StructMemberConstant::Usize(*value)),
@@ -99,7 +101,7 @@ impl TypeVariant {
                     .iter()
                     //.map(|t| Self::from_parser_typ(&t.data))
                     .map(|t| ViewPosibility { 
-                        typ: Self::from_parser_typ(&t.data.typ.typ, t.data.typ.array_size.clone()), 
+                        typ: Self::from_parser_typ(&t.data.typ), 
                         constant: t.data.constant.clone(),
                     })
                     .collect(),

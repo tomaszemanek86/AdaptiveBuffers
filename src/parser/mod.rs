@@ -89,13 +89,6 @@ pub enum TypVariant {
     UnknownType,
 }
 
-#[derive(Debug, Clone, variation::Variation)]
-pub enum OverrideEndian {
-    BigEndian,
-    LittleEndian,
-    Default,
-}
-
 #[derive(Debug, Default, Clone)]
 pub struct Typ {
     pub typ: TypVariant,

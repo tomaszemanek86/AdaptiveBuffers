@@ -8,7 +8,7 @@ impl<TData: AsMemory + Default + Clone> AsMemory for DataView<TData> {
 
 impl AsMemory for Struct {
     fn as_memory(&self, others: &Vec<MemoryDeclaration>) -> Result<Memory, InterpretError> {
-        let mut structure = Rc::new(RefCell::new(StructMemory {
+        let structure = Rc::new(RefCell::new(StructMemory {
             name: self.name().to_string(),
             parsed: self.parsed.clone(),
             fields: Vec::new(),
@@ -185,19 +185,19 @@ impl AsMemory for Int {
     fn as_memory(&self, _others: &Vec<MemoryDeclaration>) -> Result<Memory, InterpretError> {
         if self.signed {
             match self.bytes {
-                8 => Ok(MemoryType::Native(Native { typ: NativeType::I8, endian: None }).non_array_memory()),
-                16 => Ok(MemoryType::Native(Native { typ: NativeType::I16, endian: None }).non_array_memory()),
-                32 => Ok(MemoryType::Native(Native { typ: NativeType::I32, endian: None }).non_array_memory()),
-                64 => Ok(MemoryType::Native(Native { typ: NativeType::I64, endian: None }).non_array_memory()),
+                8 => Ok(MemoryType::Native(Native { typ: NativeType::I8, endian: OverrideEndian::Default }).non_array_memory()),
+                16 => Ok(MemoryType::Native(Native { typ: NativeType::I16, endian: OverrideEndian::Default }).non_array_memory()),
+                32 => Ok(MemoryType::Native(Native { typ: NativeType::I32, endian: OverrideEndian::Default }).non_array_memory()),
+                64 => Ok(MemoryType::Native(Native { typ: NativeType::I64, endian: OverrideEndian::Default }).non_array_memory()),
                 _ => Err(InterpretError::UnknownIntSize(self.bytes)),
             }
         } else {
             match self.bytes {
-                8 => Ok(MemoryType::Native(Native { typ: NativeType::U8, endian: None }).non_array_memory()),
-                16 => Ok(MemoryType::Native(Native { typ: NativeType::U16, endian: None }).non_array_memory()),
-                24 => Ok(MemoryType::Native(Native { typ: NativeType::U24, endian: None }).non_array_memory()),
-                32 => Ok(MemoryType::Native(Native { typ: NativeType::U32, endian: None }).non_array_memory()),
-                64 => Ok(MemoryType::Native(Native { typ: NativeType::U64, endian: None }).non_array_memory()),
+                8 => Ok(MemoryType::Native(Native { typ: NativeType::U8, endian: OverrideEndian::Default }).non_array_memory()),
+                16 => Ok(MemoryType::Native(Native { typ: NativeType::U16, endian: OverrideEndian::Default }).non_array_memory()),
+                24 => Ok(MemoryType::Native(Native { typ: NativeType::U24, endian: OverrideEndian::Default }).non_array_memory()),
+                32 => Ok(MemoryType::Native(Native { typ: NativeType::U32, endian: OverrideEndian::Default }).non_array_memory()),
+                64 => Ok(MemoryType::Native(Native { typ: NativeType::U64, endian: OverrideEndian::Default }).non_array_memory()),
                 _ => Err(InterpretError::UnknownIntSize(self.bytes)),
             }
         }
